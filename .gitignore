@@ -8,3 +8,5 @@
 *.lot
 *.synctex*
 *.fdb_latexmk
+*.pdf
+
