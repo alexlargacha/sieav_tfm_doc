@@ -1,9 +1,37 @@
-\chapter{Tablas, figuras, expresiones matemáticas y algoritmos}
-\chaptermark{Tablas, figuras y otros} % Cuando el título es muy largo, este comando sirve para cambiar el texto que aparece en la cabecera de las páginas pares
+\section{Introduccion}
+\label{ch:introduccion:primera}
+La virtualización es un conjunto de técnicas hardware y/o software que permiten la ejecución
+concurrente de instancias aisladas de distintos sistemas operativos en una misma plataforma
+electrónica. A estos sistemas operativos se les denomina guest.
+Los hipervisores fueron originalmente introducidos en el mundo IT para solucionar los problemas de
+balanceo de carga y utilización de recursos en data centers. En sus inicios, los hipervisores necesitaban cambios en
+los sistemas operativos guest para compensar la falta de soporte hardware para el aislamiento
+entre sistemas. A medida que las arquitecturas de micorprocesadores han ido avanzando y añadiendo
+soporte hardware para la virtualización, los hipervisores se han vuelto cada vez más habituales en los
+sistemas embebidos.
 
-\section{Figuras}
-
-Las Figuras \ref{fig:Bernoulli1} y \ref{fig:violin_besa_escenario4} muestran ejemplos de cómo insertar figuras en el TFM. Algunas herramientas como R permiten exportar las gráficas en formato latex. Cuando esto sea posible es aconsejable usar estos formatos ya que las imágenes no perderán calidad al ser aumentadas o visualizadas en pantallas grandes. Se puede ver un ejemplo de cómo conseguir esto desde R en \url{http://iltabiai.github.io/tips/latex/2015/09/15/latex-tikzdevice-r.html}. El resultado lo podemos ver en la Figura \ref{fig:variacion_fitness}.
+La inclusión de soporte hardware para la virtualización dentro de las nuevos microprocesadores ha sido
+el habilitador necesario para que la virtualización de el salto del mundo IT a los sistemas embebidos. Las
+arquitecturas más importantes de microprocesadores han evolucionado hacia la inclusión de ése soporte hardware.
+Como ejemplos notables están Intel VT-x, las extensiones de virtualización de la arquitectura ARM y MIPS VZ
+extensions.
+Este soporte hardware, lo que aporta es un modo de ejecuación distinto, con mayores privilegios que el tradicional modo
+supervisor y IO MMUs para aislar periféricos entre sistemas operativos guest. La versión de intel de IO MMU recibe el
+nombre de VT-d y en la mayoría de los sistemas ARM, existe un "System MMU". En los data center, el IO MMU se denomina habitualmente "Single Root Virtualization" o SRV.
+Los sistemas operativos guest, al estar aislados unos de otros, hace que parezca que
+están ejecutándose en máquinas físicamente distintas. La parte de software encargada de
+monitorizar y gestionar las diferentes máquinas virtuales y el acceso que tienen a los recursos del
+sistema es lo que se denomina hipervisor.
+Existen diferentes tipos de virtualización y por tanto de hipervisores. Hay dos grandes grupos de
+hipervisores:
+\begin{itemize}
+\item Tipo 1 o baremetal: en este grupo están los hipervisores que se ejecutan directamente sobre
+la plataforma electrónica sin ningún otro software de por medio, tipo sistema operativo u
+otros controladores. Tienen acceso directo al hardware.
+\item Tipo 2: estos hipervisores suelen instalarse sobre un sistema operativo (host) de base y
+acceden a los recursos del sistema (memoria, procesadores, almacenamiento, red, etc.) a
+través de él.
+\end{itemize}
 
 \begin{figure*}[!htb]
 	\centering
@@ -52,7 +80,7 @@ A continuación, se muestran algunos ejemplos de expresiones matemáticas:
 
 \begin{align}
 \begin{split}
-\widetilde{DD}(A_{1},A_{4}) & =\widetilde{DD}(A_{1},A_{4}|P_{1})\oplus \widetilde{DD}(A_{1},A_{4}|P_{2}) \\ 
+\widetilde{DD}(A_{1},A_{4}) & =\widetilde{DD}(A_{1},A_{4}|P_{1})\oplus \widetilde{DD}(A_{1},A_{4}|P_{2}) \\
 & =[\widetilde{dd}(A_{1},A_{2})\otimes \widetilde{dd}(A_{2},A_{4})]\oplus \lbrack \widetilde{dd}(A_{1},A_{3})\otimes \widetilde{dd}(A_{3},A_{4})].
 \end{split}
 \end{align}
@@ -71,9 +99,9 @@ S(\widetilde{A} ,\widetilde{B})=& 1- \left( \frac{1-\alpha-\beta}{2} + \alpha \r
 & - \left( \frac{1 - \alpha - \beta}{2} + \beta \right) \times \frac{d[(X_{\widetilde{A}},Y_{\widetilde{A}}), (X_{\widetilde{B}},Y_{\widetilde{B}})]}{M},
 \end{align*}
 \end{itemize}
-donde $\alpha +\beta <1$, $\mu _{\widetilde{\chi }}$ es la función de pertenencia de $\widetilde{\chi}$, 
+donde $\alpha +\beta <1$, $\mu _{\widetilde{\chi }}$ es la función de pertenencia de $\widetilde{\chi}$,
 \begin{equation}
-M=\underset{[0,1]\times[0,\frac{1}{2}]}{\max}\{d((x,y),(x^{\prime },y^{\prime }))\}\text{,} 
+M=\underset{[0,1]\times[0,\frac{1}{2}]}{\max}\{d((x,y),(x^{\prime },y^{\prime }))\}\text{,}
 \end{equation}%
 \begin{equation*}
 \mu _{\widetilde{A}\cap \widetilde{B}}(x)=\underset{0\leq x\leq 1}{\min}%
@@ -89,7 +117,7 @@ El Algoritmo \ref{getDelay} ilustra la forma que debe adoptarse. Se usa el paque
 \begin{algorithm}[h]
 	\begin{algorithmic}
 	\REQUIRE $t_0$ = instante en el que se genera el retardo
-	
+
 	\IF{$(update\_architecture==1)$}
 		\IF{$(delay\_scenario==1)$}
 			\STATE{delay$=C$}
@@ -103,7 +131,7 @@ El Algoritmo \ref{getDelay} ilustra la forma que debe adoptarse. Se usa el paque
 	\ELSE
 		\STATE{delay = difference(24:00, $t_0$)}
 	\ENDIF
-	
+
 	\RETURN delay
 	\end{algorithmic}
 	\caption{$getDelay(t_0)$}
@@ -121,7 +149,7 @@ La tabla \ref{table:results45} muestra un ejemplo de cómo poner notas a pie de 
 	\begin{small}
 	\begin{tabular}{llllll}
 		\toprule
-			& \multicolumn{2}{c}{Truncated Poisson} & & \multicolumn{2}{c}{Truncated Exponential} \\ 
+			& \multicolumn{2}{c}{Truncated Poisson} & & \multicolumn{2}{c}{Truncated Exponential} \\
 		\cmidrule{2-3}\cmidrule{5-6}
 		 	& Mean & $\sigma$ & & Mean & $\sigma$\\ \midrule
 		 UCB\tnote{1} & 2632.65 & 246.03 & & 1295.79 & 514.03 \\
@@ -131,7 +159,7 @@ La tabla \ref{table:results45} muestra un ejemplo de cómo poner notas a pie de 
 		 KL-UCB exp & - & - & & 786.30 & 498.16 \\
 		 KL-UCB+ & 1190.64 & 225.82 & & 813.45 & 494.59 \\
 		 BESA & 2015.73 & 3561.5 & & 755.87 & 2323.22 \\
-		 PR-1 & 1314.9 & 234.25 & & 660.64 & 492.37 \\ 
+		 PR-1 & 1314.9 & 234.25 & & 660.64 & 492.37 \\
 		 PR-2 (TS) & \textbf{917.67} & 222.79 & & \textbf{630.38} & 487.01 \\
 		 PR-3 & \textbf{736.6} & 210.96 & & \textbf{565.79*} & 480.99 \\
 		 \bottomrule
@@ -157,7 +185,7 @@ La tabla \ref{table:results45} muestra un ejemplo de cómo poner notas a pie de 
 		$T_{1}^{1}$ & (16.9, 161.72, 936.2, 3681.5) & (32.70, 239.7, 1295.6, 5197.4) & (25.1, 198.6, 1576.7, 5777.1)\\
 		$T_{1}^{2}$ & (0, 49.6, 458.1, 1791.2) & (0, 29.7, 289.7, 1397.1) & (0, 24.6, 352.6, 1552.9)\\
 		$T_{2}^{2}$ & (0, 49.6, 458.1, 1791.2) & (0, 29.7, 289.7, 1397.1) & (76, 379.3, 2074.3, 5588.4)\\
-		$T_{1}^{3}$ & (12.2, 110.5, 647.2, 2465.6) & (21.9, 147.3, 744.3, 2958.7) & (6.8, 58.5, 487.1, 1923.2)\\ 
+		$T_{1}^{3}$ & (12.2, 110.5, 647.2, 2465.6) & (21.9, 147.3, 744.3, 2958.7) & (6.8, 58.5, 487.1, 1923.2)\\
 		$T_{1}^{4}$ & (34.8, 245.5, 1176.8, 3793.2) & (62.7, 327.4, 1353.3, 4551.9) & (19.5, 129.9, 885.7, 2958.7)\\
 		\bottomrule
 		\hiderowcolors
