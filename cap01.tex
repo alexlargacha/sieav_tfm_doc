@@ -15,11 +15,31 @@ el habilitador necesario para que la virtualización de el salto del mundo IT a 
 arquitecturas más importantes de microprocesadores han evolucionado hacia la inclusión de ése soporte hardware.
 Como ejemplos notables están Intel VT-x, las extensiones de virtualización de la arquitectura ARM y MIPS VZ
 extensions.
-Este soporte hardware, lo que aporta es un modo de ejecuación distinto, con mayores privilegios que el tradicional modo
-supervisor y IO MMUs para aislar periféricos entre sistemas operativos guest. La versión de intel de IO MMU recibe el
-nombre de VT-d y en la mayoría de los sistemas ARM, existe un "System MMU". En los data center, el IO MMU se denomina habitualmente "Single Root Virtualization" o SRV.
-Los sistemas operativos guest, al estar aislados unos de otros, hace que parezca que
-están ejecutándose en máquinas físicamente distintas. La parte de software encargada de
+Este soporte hardware, lo que aporta es un modo de ejecución nuevo, con mayores privilegios que el tradicional modo
+supervisor e IO MMUs para aislar periféricos entre sistemas operativos guest. La versión de intel de IO MMU recibe el
+nombre de VT-d y en la mayoría de los sistemas ARM, existe un ``System MMU'' equivalente. En los data center, el IO MMU se denomina habitualmente ``Single Root Virtualization'' o SRV.\\[1cm]
+\textbf{Casos de uso}
+\begin{itemize}
+	\item Sistemas de criticidad mixta\\
+	El caso más habitual de uso de los hipervisores es el de consolidar diferentes cargas de computación en una única
+	plataforma para reducir el tamaño, consumo y coste de un sistema. Los sistemas operativos guest, al estar aislados unos de otros, hace que parezca que están ejecutándose en máquinas físicamente distintas. En el mundo de la automoción por ejemplo,
+	se dan casos en los que se combina el clúster de instrumentación o dashboard con el sistema de infotainment (IVI) en una sola unidad de control electrónica (ECU). El clúster de instrumentación está desarrollado normalmente sobre un sistema operativo de tiempo real (RTOS), mientras que el IVI habitualmente requiere de un sistema operativo Linux u otro sistema operativo de propósito general (GPOS). La criticidad mixta se refiere a que los requisitos de tiempo real y seguridad del clúster de instrumentación no pueden ser cubiertos por un GPOS y las librerías multimedia necesarias para el sistema de infotainment son costas de protar a un RTOS. Por lo tanto integrar estas funcionalidades a la vez en un único sistem operativo no es viable. Un hipervisor con características de tiempo real y seguridad es capaz de hacer que ambos sistemas se puedan ejecutar en un mismo procesador. Esto permite un ahorro de costes significativo al necesitarse una única tarjeta y PCB para todo el sistema.
+	\item Sistemas Legacy\\
+	A medida que los sistemas evolucionan con el tiempo, a menudo es necesario moverse a nuevos entornos o sitemas operativos para añadir funcionalidades. Preservar la funcionalidad ya existente y certificada del sistema requeriría portar todo el código a la nueva plataforma y probar todo de nuevo. La virtualización permite la ejcución concurrente de la funcionalidad tal cual fue certificada junto con el nuevo software que añade funcionalidades en el mismo procesador. Un ejemplo de esto es la radio definida por software. Los requisitos pueden ir cambiando con el tiempo y pasar de un simple interfaz LCD a un interfaz gráfico de usuario (GUI). La parte de radio puede ser my costosa de recertificar. Utilizando virtualización, se puede mantener la parte de radio tal cual fue certificada y añadir un sistema operativo con una librería moderna de GUI.
+	Este caso de uso es el más comun en los sistemas muy sensibles al coste.\\[1cm]
+\end{itemize}
+\textbf{Capacidades de los hipervisores}
+Todos los hipervisores proporcionan mecanismos de compartición de recursos en sistemas on chip (SoC), pero difieren en la profundidad y el soporte hardware.
+\begin{itemize}
+	\item Compartición de memoria\\
+	El hipervisor más básico en un SoC solo proporciona la compartición de memoria. Cada sistema guest se le asigna una CPU. El hipervisor configura el sistema de memoria virtualizada del SoC para restringir a cada CPU a una parte del mapa de memoria, incluyendo memoria RAM y periféricos. Esto permite a distintos sistemas operativos guest ejecutarse en un único SoC con periféricos disjuntos y acceso seguro a RAM.
+	\item Compartición de CPU\\
+	Un hipervisor más sofisticado, permite la compartición de cores de CPU individuales utilizando multiplexado en el tiempo. Esto permite a las diferentes cargas computacionales disponer de todos los recursos de la CPU en situaciones de alta demanda y particionar ese acceso en función de la prioridad. Por ejemplo, en el caso de la coexistencia de un RTOS y un GPOS, el RTOS tiene normalmente mayor prioridad en las CPUs, mientras que al GPOS se le garantiza un tiempo mínimo de ejecución. El GPOS tiene acceso completo mientras que el RTOS está inactivo. Hay que tener en cuenta que los hipervisores que permiten la compartición de CPU deben de ser diseñados con compartamiento en tiempo real, y normalmente están basados en algún RTOS.
+	\item Compartición de periféricos\\
+	Otra de las características de los hipervisores es la compartición de periféricos tales como dispositivos de almacenamiento, interfaces de red o GPUs. Los sistemas embebidos suelen ser sensibles al coste y por tanto el poder compartir un dispositivo eMMC es casi un requisito. Hay diferentes técnicas para implementar la compartición de periféricos que se comentarán más adelante.
+\end{itemize}
+
+ La parte de software encargada de
 monitorizar y gestionar las diferentes máquinas virtuales y el acceso que tienen a los recursos del
 sistema es lo que se denomina hipervisor.
 Existen diferentes tipos de virtualización y por tanto de hipervisores. Hay dos grandes grupos de
@@ -32,163 +52,3 @@ otros controladores. Tienen acceso directo al hardware.
 acceden a los recursos del sistema (memoria, procesadores, almacenamiento, red, etc.) a
 través de él.
 \end{itemize}
-
-\begin{figure*}[!htb]
-	\centering
-	\includegraphics[width=0.5\textwidth]{recursos/Figure2}
-	\caption{Violinplot fot BESA in scenario 4}
-	\label{fig:violin_besa_escenario4}
-\end{figure*}
-
-\begin{figure*}[!htb]
-    \centering
-    \begin{subfigure}[b]{0.5\textwidth}
-        \includegraphics[width=\textwidth]{recursos/Figure1a}
-        \caption{Mean cumulative regret along trials}
-        \label{fig:Bernoulli1_semilog}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.5\textwidth}
-        \includegraphics[width=\textwidth]{recursos/Figure1b}
-        \caption{Multiple violinplot}
-        \label{fig:Bernoulli1_boxplot}
-    \end{subfigure}
-    \caption{Comparative of the policies for scenario 1}
-    \label{fig:Bernoulli1}
-\end{figure*}
-
-\begin{figure}[!ht]
-	\centering
-	\input{recursos/variacion_fitness}
-	\caption{Variación de la función objetivo en intervalos de 1000 iteraciones en el caso 8 para diferentes soluciones iniciales}
-	\label{fig:variacion_fitness}
-\end{figure}
-
-\section{Expresiones matemáticas}
-A continuación, se muestran algunos ejemplos de expresiones matemáticas:
-\begin{equation}
-\mu^*\times 25000-\frac{1}{1000}\sum_{r=1}^{1000}\sum_{i=1}^{K}\sum_{j=1}^{25000}\mu_i\times X_{i,j}^r.
-\end{equation}
-
-\begin{equation}
-\mu_{\widetilde{A}}(x)=\left\{ \begin{array}{cc}
-\frac{x-a_{1}}{a_{2}-a_{1}} & if\; a_{1}\leq x\leq a_{2}\\
-1 & if\; a_{2}\leq x\leq a_{3}\\
-\frac{x-a_{4}}{a_{3}-a_{4}} & if\; a_{3}\leq x\leq a_{4}\\
-0 & otherwise
-\end{array}\right. .
-\end{equation}
-
-\begin{align}
-\begin{split}
-\widetilde{DD}(A_{1},A_{4}) & =\widetilde{DD}(A_{1},A_{4}|P_{1})\oplus \widetilde{DD}(A_{1},A_{4}|P_{2}) \\
-& =[\widetilde{dd}(A_{1},A_{2})\otimes \widetilde{dd}(A_{2},A_{4})]\oplus \lbrack \widetilde{dd}(A_{1},A_{3})\otimes \widetilde{dd}(A_{3},A_{4})].
-\end{split}
-\end{align}
-
-\begin{itemize}
-\item Si $\max \{(a_{4}-a_{1}),(b_{4}-b_{1})\}\neq 0$, entonces
-\begin{align*}
-S(\widetilde{A},\widetilde{B})=& 1 - ( 1 - \alpha - \beta) \times \left( 1 - \frac{\int_{0}^{1} \mu_{\widetilde{A}\cap \widetilde{B}}(x)dx} {\int_{0}^{1} \mu_{\widetilde{A}\cup \widetilde{B}}(x)dx}\right) \\
-& -\alpha\frac{\sum \mid a_{i} - b_{i} \mid }{4}- \beta \frac{d[(X_{\widetilde{A} },Y_{\widetilde{A}}),(X_{\widetilde{B}} ,Y_{\widetilde{B}})]}{M},
-\end{align*}
-
-\item En caso contrario,%
-\begin{align*}
-S(\widetilde{A} ,\widetilde{B})=& 1- \left( \frac{1-\alpha-\beta}{2} + \alpha \right) \times
-\frac{\sum \mid a_i - b_i \mid}{4} - \\
-& - \left( \frac{1 - \alpha - \beta}{2} + \beta \right) \times \frac{d[(X_{\widetilde{A}},Y_{\widetilde{A}}), (X_{\widetilde{B}},Y_{\widetilde{B}})]}{M},
-\end{align*}
-\end{itemize}
-donde $\alpha +\beta <1$, $\mu _{\widetilde{\chi }}$ es la función de pertenencia de $\widetilde{\chi}$,
-\begin{equation}
-M=\underset{[0,1]\times[0,\frac{1}{2}]}{\max}\{d((x,y),(x^{\prime },y^{\prime }))\}\text{,}
-\end{equation}%
-\begin{equation*}
-\mu _{\widetilde{A}\cap \widetilde{B}}(x)=\underset{0\leq x\leq 1}{\min}%
-\{\mu _{\widetilde{A}}(x),\mu _{\widetilde{B}}(x)\} ,
-\;\;\; \mu _{\widetilde{A}\cup \widetilde{B}}(x)=\underset{0\leq x\leq 1}{\max}%
-\{\mu _{\widetilde{A}}(x),\mu _{\widetilde{B}}(x)\}.
-\end{equation*}%
-
-\section{Algoritmos}
-
-El Algoritmo \ref{getDelay} ilustra la forma que debe adoptarse. Se usa el paquete \textit{algorithmic}. Los comandos pueden consultarse en \url{https://en.wikibooks.org/wiki/LaTeX/Algorithms} o en la documentación oficial.
-
-\begin{algorithm}[h]
-	\begin{algorithmic}
-	\REQUIRE $t_0$ = instante en el que se genera el retardo
-
-	\IF{$(update\_architecture==1)$}
-		\IF{$(delay\_scenario==1)$}
-			\STATE{delay$=C$}
-		\ELSE
-			\IF{$(reward\_scenario==1)$}
-				\STATE{delay $\leftarrow [0,300]$-trunc\_Exp($\lambda=1/80$)}
-			\ELSE
-				\STATE{delay $\leftarrow [0,480]$-trunc\_Exp($\lambda=1/150$)}
-			\ENDIF
-		\ENDIF
-	\ELSE
-		\STATE{delay = difference(24:00, $t_0$)}
-	\ENDIF
-
-	\RETURN delay
-	\end{algorithmic}
-	\caption{$getDelay(t_0)$}
-	\label{getDelay}
-\end{algorithm}
-
-\section{Tablas}
-La tabla \ref{table:results45} muestra un ejemplo de cómo poner notas a pie de tabla (necesario el paquete threeparttable). En la tabla \ref{table:risk} se usa el entorno \textit{stripedtable} para marcar la líneas alternas con diferentes colores.
-
-\begin{table}[htb]
-\begin{threeparttable}
-	\centering
-	\caption{Mean cumulative regrets and standard deviations}
-	\label{table:results45}
-	\begin{small}
-	\begin{tabular}{llllll}
-		\toprule
-			& \multicolumn{2}{c}{Truncated Poisson} & & \multicolumn{2}{c}{Truncated Exponential} \\
-		\cmidrule{2-3}\cmidrule{5-6}
-		 	& Mean & $\sigma$ & & Mean & $\sigma$\\ \midrule
-		 UCB\tnote{1} & 2632.65 & 246.03 & & 1295.79 & 514.03 \\
-		 DMED+ & 978.56 & 225.24 & & \textbf{645.70} & 493.8 \\
-		 KL-UCB & 1817.4 & 236.57 & & 1219.98 & 510.69 \\
-		 KL-UCB poisson & \textbf{314.99*} & 201.79 & & - & - \\
-		 KL-UCB exp & - & - & & 786.30 & 498.16 \\
-		 KL-UCB+ & 1190.64 & 225.82 & & 813.45 & 494.59 \\
-		 BESA & 2015.73 & 3561.5 & & 755.87 & 2323.22 \\
-		 PR-1 & 1314.9 & 234.25 & & 660.64 & 492.37 \\
-		 PR-2 (TS) & \textbf{917.67} & 222.79 & & \textbf{630.38} & 487.01 \\
-		 PR-3 & \textbf{736.6} & 210.96 & & \textbf{565.79*} & 480.99 \\
-		 \bottomrule
-	\end{tabular}
-	\end{small}
-	\begin{tablenotes}
-		\item[1] Esto es una nota a pie de tabla
-	\end{tablenotes}
-\end{threeparttable}
-\end{table}
-
-\begin{stripedtable}[htb]
-	\centering
-	\caption{Risks to $A_5$ after the implementation of the selected safeguards}
-	\label{table:risk}
-	\begin{scriptsize}
-	\begin{tabular}{cccc}
-		\toprule
-		\hiderowcolors
-		Threat & Confidentiality & Integrity & Authenticity \\
-		\midrule
-		\showrowcolors
-		$T_{1}^{1}$ & (16.9, 161.72, 936.2, 3681.5) & (32.70, 239.7, 1295.6, 5197.4) & (25.1, 198.6, 1576.7, 5777.1)\\
-		$T_{1}^{2}$ & (0, 49.6, 458.1, 1791.2) & (0, 29.7, 289.7, 1397.1) & (0, 24.6, 352.6, 1552.9)\\
-		$T_{2}^{2}$ & (0, 49.6, 458.1, 1791.2) & (0, 29.7, 289.7, 1397.1) & (76, 379.3, 2074.3, 5588.4)\\
-		$T_{1}^{3}$ & (12.2, 110.5, 647.2, 2465.6) & (21.9, 147.3, 744.3, 2958.7) & (6.8, 58.5, 487.1, 1923.2)\\
-		$T_{1}^{4}$ & (34.8, 245.5, 1176.8, 3793.2) & (62.7, 327.4, 1353.3, 4551.9) & (19.5, 129.9, 885.7, 2958.7)\\
-		\bottomrule
-		\hiderowcolors
-	\end{tabular}
-	\end{scriptsize}
-\end{stripedtable}
