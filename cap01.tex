@@ -8,7 +8,7 @@ balanceo de carga y utilización de recursos en data centers. En sus inicios, lo
 los sistemas operativos guest para compensar la falta de soporte hardware para el aislamiento
 entre sistemas. A medida que las arquitecturas de micorprocesadores han ido avanzando y añadiendo
 soporte hardware para la virtualización, los hipervisores se han vuelto cada vez más habituales en los
-sistemas embebidos.
+sistemas embebidos \cite{EmbeddedWorld2018}.
 
 La inclusión de soporte hardware para la virtualización dentro de las nuevos microprocesadores ha sido
 el habilitador necesario para que la virtualización de el salto del mundo IT a los sistemas embebidos. Las
@@ -39,16 +39,33 @@ Todos los hipervisores proporcionan mecanismos de compartición de recursos en s
 	Otra de las características de los hipervisores es la compartición de periféricos tales como dispositivos de almacenamiento, interfaces de red o GPUs. Los sistemas embebidos suelen ser sensibles al coste y por tanto el poder compartir un dispositivo eMMC es casi un requisito. Hay diferentes técnicas para implementar la compartición de periféricos que se comentarán más adelante.
 \end{itemize}
 
- La parte de software encargada de
-monitorizar y gestionar las diferentes máquinas virtuales y el acceso que tienen a los recursos del
-sistema es lo que se denomina hipervisor.
-Existen diferentes tipos de virtualización y por tanto de hipervisores. Hay dos grandes grupos de
-hipervisores:
+Los hipervisores se clasifican habitualmente en dos tipos \cite{Popek1974}\cite{hyper_review}:
 \begin{itemize}
 \item Tipo 1 o baremetal: en este grupo están los hipervisores que se ejecutan directamente sobre
 la plataforma electrónica sin ningún otro software de por medio, tipo sistema operativo u
-otros controladores. Tienen acceso directo al hardware.
-\item Tipo 2: estos hipervisores suelen instalarse sobre un sistema operativo (host) de base y
+otros controladores. Tienen acceso directo al hardware y gestionan los diferentes sistemas guest. Estos hipervisores se caracterizan por ser una pequeña capa software que proporciona el entorno necesario para los sistemas guest se puedan ejecutar. Son los que se utilizan habitualmente en sistemas embebidos ya que son los que menos impacto tienen sobre el rendimiento del sistema. Los primeros hipervisores, que desarrollo IBM en los años 60, son de este tipo \cite{hyper_review}\\
+\begin{figure*}[!htb]
+	\centering
+	\includegraphics[width=0.65\textwidth]{recursos/type1_hyp.png}
+	\caption{Hipervisor de tipo 1}
+	\label{fig:hyper_type1}
+\end{figure*}
+\item Tipo 2: estos hipervisores suelen instalarse sobre un sistema operativo convencional (host) de base y
 acceden a los recursos del sistema (memoria, procesadores, almacenamiento, red, etc.) a
-través de él.
+través de él. Su funcionamiento es parecido al de cualquier otro programa que se ejecuta en el sistema host. Son responsables de abstaer al sistema guest del sistema host donde se están ejecutando. Algunos ejemplos de estos hipervisores son los populares VMWare y VirtualBox. Estos hipervisores tienen un impacto notable en el rendimiento ya que todo el acceso a los recursos del sistema se hace a través del sistema host.
+\begin{figure*}[!htb]
+	\centering
+	\includegraphics[width=0.65\textwidth]{recursos/type2_hyp.png}
+	\caption{Hipervisor de tipo 2}
+	\label{fig:hyper_type2}
+\end{figure*}
+\end{itemize}
+
+En los sistemas virtualizados el hipervisor es denominado también Monitor de Máquinas Virtuales o VMM en sus siglas en inglés. Como se ha mencionado anteriormente, es la parte encargada de ofrecer una versión virtualizada de los recursos del sistema y gestionar las distintas máquinas virtuales en funcionameiento. Al virtualizar los recursos del sistema y la APIs, el hipervisor es capaz de ejecutar diferentes máquinas virtuales simultaneamente utilizando tecnologias de virtualización que se pueden dividir en las siguientes modalidades \cite{hyper_perf_arm}:
+\begin{itemize}
+	\item Virtualización completa: En este tipo de virtualización, el hypervisor simula los recursos (CPU, memoria, periféricos, ...) de tal forma que se pueden ejecutar sistemas operativos guest sin ningún tipo de modificación. El sistema operativo guest es un dominio con privilegios de ejecución limitados. La virtualización completa utiliza la conversión binaria para traducir las operaciones que requieren de privilegios en un bloque equivalente de operaciones sin privilegios para ejecutarse directamente en la CPU, produciendo el mismo resultado que las operaciones originales.\\
+	En este modo de virtualización ni el hardware ni el sistema operativo requieren de ningún tipo de modificación.
+	\item Paravirtualización: esta técnica de virtualización resulta en un impacto menor en el rendimiento del sistema que la virtualización completa. En la paravirtualización, el sistema operativo guest ha de ser modificado para utilizar las denominadas \textit{hypercalls} en lugar de las instrucciones que requieran privilegios. Al igual que una llamada al sistema (syscall) es una software trap de la aplicación al sistema operativo, una \textit{hypercall} es una software trap de un sistema operativo guest al hipervisor. La paravirtualización también permite reemplazar multiples instrucciones que requieren privilegios en una única \textit{hypercall}, lo cual permite reducir el número de cambios de contexto entre el modo privilegiado y el no privilegiado, reduciendo la sobrecarga. Los primeros conceptos de paravirtualización fueron introducidos por Denali \cite{denali} y Xen en los primeros años 2000.\\
+	La desventaja evidente de la paravirtualización es la necesidad de modificar los sistemaos operativos guest.
+	\item Virtualización asistida por hardware: esta técnica de virtualización es la que permite ejecutar sistemas operativos guest sin tener que modificarlos haciendo uso de las características de virtualización que aportan alguna arquitecturas de microprocesadores como las descritas anteriormente de Intel y ARM.
 \end{itemize}
