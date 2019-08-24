@@ -1,4 +1,4 @@
-\section{Introduccion}
+\chapter{Introduccion}
 \label{ch:introduccion:primera}
 La virtualización es un conjunto de técnicas hardware y/o software que permiten la ejecución
 concurrente de instancias aisladas de distintos sistemas operativos en una misma plataforma
@@ -59,6 +59,7 @@ través de él. Su funcionamiento es parecido al de cualquier otro programa que 
 	\caption{Hipervisor de tipo 2}
 	\label{fig:hyper_type2}
 \end{figure*}
+\\
 \end{itemize}
 
 En los sistemas virtualizados el hipervisor es denominado también Monitor de Máquinas Virtuales o VMM en sus siglas en inglés. Como se ha mencionado anteriormente, es la parte encargada de ofrecer una versión virtualizada de los recursos del sistema y gestionar las distintas máquinas virtuales en funcionameiento. Al virtualizar los recursos del sistema y la APIs, el hipervisor es capaz de ejecutar diferentes máquinas virtuales simultaneamente utilizando tecnologias de virtualización que se pueden dividir en las siguientes modalidades \cite{hyper_perf_arm}:
@@ -69,3 +70,12 @@ En los sistemas virtualizados el hipervisor es denominado también Monitor de M�
 	La desventaja evidente de la paravirtualización es la necesidad de modificar los sistemaos operativos guest.
 	\item Virtualización asistida por hardware: esta técnica de virtualización es la que permite ejecutar sistemas operativos guest sin tener que modificarlos haciendo uso de las características de virtualización que aportan alguna arquitecturas de microprocesadores como las descritas anteriormente de Intel y ARM.
 \end{itemize}
+
+Atendiendo al tipo de implementación , existe otra clasificación de los hipervisores \cite{xvisor} que tiene las siguientes categorías:
+\begin{itemize}
+	\item Monolítico: Una única capa de software es la que proporciona todo el acceso al hardware de la plataforma, virtualización de la CPU y emulación de IO en el guest. A este tipo responden, XVisor VMWare ESXi \cite{vmware} y Jailhouse \cite{jailhouse_github}
+	\item Parcialmente monolíticos: los hipervisores que caen en esta categoría son generalmente extensiones de sistemas operativos de propósito general (Linux, FreeBSD, etc.). Dan soporte a la virtualización de CPU y acceso al hardware en el kernel del sistema operativo, y la emulación de IO se realiza en el espacio de usuario. Ejemplos de estos hipervisores son Linux KVM y VMWare Workstation.
+	\item Con micro-kernel: los hipervisores que se basan en un micro-kernel son usualmente versiones aligeradas de kernels para poder dar acceso al hardware y virtualización de CPU. Dependen de una máquina virtual que se encargue de controlar el acceso completo a los recursos del sistema. Algunos de estos hipervisores ejecutan diferentes sistemas guest para dar acceso a drivers de dispositivos, en lugar de disponer de estos drivers en la máquina virtual de control. En esta categoría se encuentran por ejemplo Xen, OKL4 Microvisor \cite{okl4} y Microsoft Hyper-V \cite{hyper-v}.
+\end{itemize}
+
+\newpage

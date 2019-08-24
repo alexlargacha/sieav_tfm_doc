@@ -1,4 +1,4 @@
-\documentclass[spanish,12pt,a4paper,twoside]{book}
+\documentclass[spanish,12pt,a4paper,oneside]{book}
 \usepackage{newclude} % Permite usar \include* que es igual que \include pero sin saltos de página adicionales
 %\includeonly{cap01} % con este comando solo se incluirán los archivos mencionados haciendo que la compilación sea mucho más rápida. Referencias a otros capítulos quedarán rotas, se recomienda una compilación limpia cada vez que se cambie esta línea (es decir, borrar ficheros intermedios cuando se descomenta/comenta/cambia el argumento)
 
@@ -23,10 +23,32 @@
 \usepackage{booktabs} % para los comandos toprule, midrule, cmidrule y bottomrule: líneas horizontales de las tablas
 \usepackage{threeparttable} % Entorno para las notas a pie de tabla
 
-%--- Paquete algorithm y personalizaciones ---%
-\usepackage{algorithm,algorithmic}
-\floatname{algorithm}{Altoritmo}
-\renewcommand{\listalgorithmname}{Índice de algoritmos}
+%--- Paquete listings y personalizaciones ---%
+\usepackage{listings}
+\definecolor{mGreen}{rgb}{0,0.6,0}
+\definecolor{mGray}{rgb}{0.5,0.5,0.5}
+\definecolor{mPurple}{rgb}{0.58,0,0.82}
+\definecolor{backgroundColour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{CStyle}{
+    backgroundcolor=\color{backgroundColour},
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    language=C
+}
 
 \usepackage{multirow}
 
@@ -95,6 +117,13 @@
 	\bibitem{hyper_review} Mounika M, Chinnaswamy C N. \emph{A Comprehensive Review on Embedded Hypervisors}. International Journal of Advanced Research in Computer Engineering \& Technology (IJARCET) Volume 5, Issue 5, May 2016
 	\bibitem{hyper_perf_arm} M.Sc. Sebouh Toumassian, Dipl.-Ing. (FH) Rico Werner, Prof. Dr.-Ing Axel Sikora, \emph{Performance Measurements for Hypervisors on Embedded ARM Processors}. 2016 Intl. Conference on Advances in Computing, Communications and Informatics (ICACCI).
 	\bibitem{denali} A. Whitaker, M. Shaw, and S. D. Gribble, \emph{Denali: Lightweight Virtual Machines for Distributed and Networked Applications}. The University of Washington.
+	\bibitem{armv8_virt_review} Sergey Temerkhanov \& Igor Pochinok, \emph{Understanding virtualization facilities in the ARMv8 processor architecture}. https://www.embedded.com/design/mcus-processors-and-socs/4461129/1/Understanding-virtualization-facilities-in-the-ARMv8-processor-architecture
+	\bibitem{xvisor} Anup Patel, Mai Daftedar, Mohmad Shalan, and M. Watheq El-Kharashi \emph{Embedded Hypervisor Xvisor: A comparative analysis}.
+	\bibitem{okl4} Gernot Heiser, and Ben Leslie, \emph{The OKL4 Microvisor: Convergence Point of Microkernels and Hypervisors}. Proceedings of the 1st ACM SIGCOMM Asia-Pacific Workshop on Systems, ApSys 2010, New Delhi, India, 2010.
+	\bibitem{hyper-v} https://docs.microsoft.com/es-es/virtualization/hyper-v-on-windows/about/
+	\bibitem{jailhouse_github} https://github.com/siemens/jailhouse
+	\bibitem{vmware} https://www.vmware.com/products/esxi-and-esx.html
+	\bibitem{seL4} https://sel4.systems/
 	\bibitem{armv8_el} https://developer.arm.com/docs/100878/latest/changing-exception-levels
 
 \end{thebibliography}
