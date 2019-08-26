@@ -91,3 +91,16 @@ El hipervisor de WindRiver facilita la comunicación rápida entre virtual board
   \caption{opciones de comunicación entre virtual boards en WindRiver Hypervisor}
   \label{fig:windriver_com}
 \end{figure*}
+
+\section{KVM}
+KVM, o \textit{Kernel-based Virtual Machine}, es un hipervisor de tipo 2 lo que implica que necesita un sistema operativo host para funcionar. Aunque su uso en sistemas embebidos no parece a priori muy adecuado,
+se ha introducido en este apartado del TFM debido a que es el hipervisor que está en la línea principal de Linux, por lo que tiene detrás una potente fuerza de desarrollo y de usuarios.\\
+KVM permite la ejecución de distintos sitemas operativos \cite{kvm_list} sin requerir modificaciones en los mismos y tiene versiones para las arquitecturas x86, x8664, MIPS, PowerPC y ARM con distinto grado de oficialidad.
+
+
+\paragraph{Orígenes}
+KVM fue anunciado por su creador, Avi Kivity en octubre de 2006 \cite{kvm_2}. El desarrollo de KVM empezó dentro de la compañía donde trabajaba Kivity, la israelí Qumranet con el objetivo de corregir las limitaciones de la implementación de Xen existente con la que estaban trabajando. En aquel momento las extensiones de virtualización estaban anunciadas pero no existían en las arquitecturas de microprocesadores. El desarrollo de KVM se basó en sacar partido a esa tecnología que estaba por llegar y que Xen todavía no incluía. En la arquitectura x86, tradicionalmente el nivel más alto de privilegio era el \textit{ring 0} y para poder ejecutar varios sistemas operativos concurrentemente hacía falta un nivel de privilegio superior a este. Con la irrupción de la tecnología de virtaulización de Intel VT-x apareció un conjunto de instrucciones VMX (Virtual Machine Extensions) que introdujo un nivel de privilegio nuevo, \textit{ring -1}, que es el nivel en el que el hipervisor se ejecuta. La primera versión de KVM incluía el soporte para las instrucciones VMX de Intel y pronto incorporó las instrucciones SVM de AMD. En Diciembre de 2006 KVM se integró en la línea principal del kernel de Linux y la primera versión en la que apareció fue en la 2.6.20 de Febrero de 2007.
+
+\paragraph{Implementación en ARM}
+Adelantando la arquitectura de microprocesador que se va a utilizar para el desarrollo del presente TFM, se va a tener en cuenta únicamente la implementación de KVM en la arquitectura ARM, ya que tiene varias particularidades.\\
+El trabajo de adaptar KVM para plataformas basadas en ARM no es sencillo ya que fue concevido para Intel VT-x y difiere en aspectos importantes del soporte a la virtualización que ofrece la arquitectura ARM, más concretamente en ARMv8 \cite{kvm_1}.
