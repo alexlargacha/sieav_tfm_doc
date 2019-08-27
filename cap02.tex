@@ -95,7 +95,7 @@ El hipervisor de WindRiver facilita la comunicación rápida entre virtual board
 \section{KVM}
 KVM, o \textit{Kernel-based Virtual Machine}, es un hipervisor de tipo 2 lo que implica que necesita un sistema operativo host para funcionar. Aunque su uso en sistemas embebidos no parece a priori muy adecuado,
 se ha introducido en este apartado del TFM debido a que es el hipervisor que está en la línea principal de Linux, por lo que tiene detrás una potente fuerza de desarrollo y de usuarios.\\
-KVM permite la ejecución de distintos sitemas operativos \cite{kvm_list} sin requerir modificaciones en los mismos y tiene versiones para las arquitecturas x86, x8664, MIPS, PowerPC y ARM con distinto grado de oficialidad.
+KVM permite la ejecución de distintos sitemas operativos \cite{kvm_list} sin requerir modificaciones en los mismos y tiene versiones para las arquitecturas x86, x86\_64, MIPS, PowerPC y ARM con distinto grado de oficialidad.
 
 
 \paragraph{Orígenes}
@@ -103,4 +103,30 @@ KVM fue anunciado por su creador, Avi Kivity en octubre de 2006 \cite{kvm_2}. El
 
 \paragraph{Implementación en ARM}
 Adelantando la arquitectura de microprocesador que se va a utilizar para el desarrollo del presente TFM, se va a tener en cuenta únicamente la implementación de KVM en la arquitectura ARM, ya que tiene varias particularidades.\\
-El trabajo de adaptar KVM para plataformas basadas en ARM no es sencillo ya que fue concevido para Intel VT-x y difiere en aspectos importantes del soporte a la virtualización que ofrece la arquitectura ARM, más concretamente en ARMv8 \cite{kvm_1}.
+El trabajo de adaptar KVM para plataformas basadas en ARM no es sencillo ya que fue concevido para Intel VT-x y difiere en aspectos importantes del soporte a la virtualización que ofrece la arquitectura ARM, más concretamente en ARMv8 \cite{kvm_1}.\\
+Más adelante se detallarán las características de estas extesiones, pero resumiendo, la clave para dar cavida a la virtualización en la arquitectura ARM es la inclusión de un nuevo nivel de privilegio en la CPU, o nivel de excepción (EL) en la nomenclatura ARM. Este nuevo nivel de excepción, EL2, se añade a los ya existentes niveles de excepción de usuario y de kernel, EL0 y EL1 respectivamente.
+El software que se ejecuta en EL2 puede configurar el hardware para dar soporte a las máquina virtuales. El hipervisor es el software que se ejecuta en EL2 y que habilita las funcionalidades de virtualización del hardware para permitir a los sistemas guest interactuar mediante ina interfaz igual a lo que sería una máquina real. De esta forma los sistemas guest no deben modificarse para poder ejecutarse. Los sistemas guest se ejecutan como lo harían nativamente utilizando EL1 y EL0 hasta que alguna condición hace que se requiera del hipervisor. En este punto el hardware pasa a EL2 dando control al hipervisor, que puede interactuar directamente con el harware y finalmente devolver el control al sistema guest.\\
+Los hipervisores de tipo 1 encajan bien con este reparto de los niveles de excepción descritos, mientras que los de tipo 2, como KVM, lo tienen un poco más complicado como se puede apreciar en la siguiente figura:
+
+\begin{figure*}[!htb]
+  \centering
+  \includegraphics[width=0.80\textwidth]{recursos/kvm_xen_1.png}
+  \caption{Xen y KVM en ARMv8}
+  \label{fig:kvm_and_xen}
+\end{figure*}
+
+Los sistemas operativos existentes están diseñados para ejecutarse en EL1, así que un hipervisor de tipo 2 que necesita de un sistema operativo host (KVM y Linux en este caso) para ejecutarse y acceder al hardware
+no encaja tan bien en la arquitectura ARMv8. El EL2 es estrictamente un nivel de excepción mayor que EL1 con registros diferentes. Cambiar Linux para que se ejecute en EL2 requiere de demasiadas modificaciones que no serían prácticas, por tanto, KVM se ejecuta tanto en EL1 como en EL2 en un modo denominado virtualización partida, o \textit{split-mode virtualization}. De este modo, por un lado se comparte el EL1 entre el sistema operativo host (Linux) y las máquinas virtuales, y por otro se utiliza EL2 para habilitar las extensiones de virtualización que permitan ejecutar las máquinas virtuales con un rendimiento cercano al de un sistema nativo. KVM habilita estas extensiones en EL2 cuando se cambia de modo host a modo máquina virtual, y las deshabilita cuando vuelve a cambiar a host. De esta forma se podría decir que una máquina virtual ejecutandose con KVM, no es más que otro proceso más para el sistema operativo host, lo que requiere un cambio de contexto cuando se entra y se sale de la máquina virtual.\\
+
+
+\section{Xen en ARM}
+Xen es un hypervisor de tipo 1 de código abierto que se ejecuta directamente sobre el hardware. Todo lo demás son máquinas virtuales que se ejecutan por encima de Xen, incluído el denominado Dom0. En la nomenclatura de Xen, un dominio es equivalente a una máquina virtual. El Dom0 es la primera máquina virtual y se crea durante el arranque por Xen. Se trata de una máquina virtual con privilegios especiales que maneja los dispositivos de la plataforma.\\
+Xen virtualiza la CPU, la memoria, las interrupciones y los timers. De esta forma proporciona a las máquinas virtuales de una o más CPUs virtuales, una parte de la memoria del sistema, un controladore virtual de interrupciones y un timer virtual. En su configuración por defecto Xen asigna dispositivos como controladores SATA o tarjetas de red al Dom0, teniendo en cuenta la recolocación de zonas MMIO e interrupciones. El Dom0 utiliza el mismo driver de dispositivo que si se estuviera ejecutando de forma nativa, sin hipervisor. Este dominio normalmente es Linux aunque podría ser FreeBSD u otro sistema operativo \cite{xen_arm_whitepaper}.\\
+El Dom0 también dispone de una serie de drivers denominados \textit{paravirtualized backends} para dar acceso al disco, red, etc, al resto de máquinas virtuales no privilegiadas. DomU es el termino que se utiliza en Xen para denominar a las máquinas virtuales no privilegiadas. Estas pueden obtener acceso a una serie de dispositivos virtuales genéricos a través de los correspondientes drivers \textit{paravirtualized frontends}. General mente existe una pareja de drivers \textit{paravirtualizados} para los dispositivos más comunes como discos de almacenamiento, controladores de red, puerto serie, framebuffer, ratón, teclado, etc
+
+\begin{figure*}[!htb]
+  \centering
+  \includegraphics[width=0.70\textwidth]{recursos/xen_1.png}
+  \caption{Arquitectura típica de Xen}
+  \label{fig:xen_1}
+\end{figure*}
