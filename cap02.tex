@@ -110,19 +110,19 @@ Los hipervisores de tipo 1 encajan bien con este reparto de los niveles de excep
 
 \begin{figure*}[!htb]
   \centering
-  \includegraphics[width=0.80\textwidth]{recursos/kvm_xen_1.png}
+  \includegraphics[width=0.90\textwidth]{recursos/kvm_xen_1.png}
   \caption{Xen y KVM en ARMv8}
   \label{fig:kvm_and_xen}
 \end{figure*}
 
-Los sistemas operativos existentes están diseñados para ejecutarse en EL1, así que un hipervisor de tipo 2 que necesita de un sistema operativo host (KVM y Linux en este caso) para ejecutarse y acceder al hardware
+Los sistemas operativos existentes están diseñados para ejecutarse en EL1, así que un hipervisor de tipo 2, que necesita de un sistema operativo host (KVM y Linux en este caso) para ejecutarse y acceder al hardware
 no encaja tan bien en la arquitectura ARMv8. El EL2 es estrictamente un nivel de excepción mayor que EL1 con registros diferentes. Cambiar Linux para que se ejecute en EL2 requiere de demasiadas modificaciones que no serían prácticas, por tanto, KVM se ejecuta tanto en EL1 como en EL2 en un modo denominado virtualización partida, o \textit{split-mode virtualization}. De este modo, por un lado se comparte el EL1 entre el sistema operativo host (Linux) y las máquinas virtuales, y por otro se utiliza EL2 para habilitar las extensiones de virtualización que permitan ejecutar las máquinas virtuales con un rendimiento cercano al de un sistema nativo. KVM habilita estas extensiones en EL2 cuando se cambia de modo host a modo máquina virtual, y las deshabilita cuando vuelve a cambiar a host. De esta forma se podría decir que una máquina virtual ejecutandose con KVM, no es más que otro proceso más para el sistema operativo host, lo que requiere un cambio de contexto cuando se entra y se sale de la máquina virtual.\\
 
 
-\section{Xen en ARM}
+\section{Xen}
 Xen es un hypervisor de tipo 1 de código abierto que se ejecuta directamente sobre el hardware. Todo lo demás son máquinas virtuales que se ejecutan por encima de Xen, incluído el denominado Dom0. En la nomenclatura de Xen, un dominio es equivalente a una máquina virtual. El Dom0 es la primera máquina virtual y se crea durante el arranque por Xen. Se trata de una máquina virtual con privilegios especiales que maneja los dispositivos de la plataforma.\\
 Xen virtualiza la CPU, la memoria, las interrupciones y los timers. De esta forma proporciona a las máquinas virtuales de una o más CPUs virtuales, una parte de la memoria del sistema, un controladore virtual de interrupciones y un timer virtual. En su configuración por defecto Xen asigna dispositivos como controladores SATA o tarjetas de red al Dom0, teniendo en cuenta la recolocación de zonas MMIO e interrupciones. El Dom0 utiliza el mismo driver de dispositivo que si se estuviera ejecutando de forma nativa, sin hipervisor. Este dominio normalmente es Linux aunque podría ser FreeBSD u otro sistema operativo \cite{xen_arm_whitepaper}.\\
-El Dom0 también dispone de una serie de drivers denominados \textit{paravirtualized backends} para dar acceso al disco, red, etc, al resto de máquinas virtuales no privilegiadas. DomU es el termino que se utiliza en Xen para denominar a las máquinas virtuales no privilegiadas. Estas pueden obtener acceso a una serie de dispositivos virtuales genéricos a través de los correspondientes drivers \textit{paravirtualized frontends}. General mente existe una pareja de drivers \textit{paravirtualizados} para los dispositivos más comunes como discos de almacenamiento, controladores de red, puerto serie, framebuffer, ratón, teclado, etc
+El Dom0 también dispone de una serie de drivers denominados \textit{paravirtualized backends} para dar acceso al disco, red, etc. al resto de máquinas virtuales no privilegiadas. DomU es el termino que se utiliza en Xen para denominar a las máquinas virtuales no privilegiadas. Estas pueden obtener acceso a una serie de dispositivos virtuales genéricos a través de los correspondientes drivers \textit{paravirtualized frontends}. Generalmente existe una pareja de drivers \textit{paravirtualizados} para los dispositivos más comunes como discos de almacenamiento, controladores de red, puerto serie, framebuffer, ratón, teclado, etc. Normalmente están alojados en el kernel aunque algunos pueden ejecutarse desde espacio de usuario en QEMU. Los drivers \textit{frontend} conectan con los drivers \textit{backend} mediante un sencillo protocolo en anillo sobre una página de memoria copartida. Xen proporciona todos las herramientas para el decubrimiento y establecimiento inicial de la comunicación. También proporciona un mecanismo para compartir páginas adicionales y enviarse notificaciones usando interrupciones software\cite{xen_arm_whitepaper}.\\
 
 \begin{figure*}[!htb]
   \centering
@@ -130,3 +130,85 @@ El Dom0 también dispone de una serie de drivers denominados \textit{paravirtual
   \caption{Arquitectura típica de Xen}
   \label{fig:xen_1}
 \end{figure*}
+
+Aunque es la configuración más utilizada, no es obligatorio que todos los drivers de dispositivos y todos los \textit{backends} se ejecuten en el Dom0. La arquitectura Xen permite lo que se denominan dominios de drivers. Estos son maquinas virtuales sin privilegios cuyo único objetivo es servir de \textit{backend} y ejecutar el driver correspondiente a una única clase de dispositivo como se puede observar en la siguiente configuración:\\
+
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.70\textwidth]{recursos/xen_2.png}
+  \caption{Dominios de drivers en Xen}
+  \label{fig:xen_2}
+\end{figure*}
+
+Con esta configuración por ejemplo, se puede disponer de un dominio de driver de red al que se le asigna la tarjeta de red del sistema. En este dominio corre el driver del dispositivo de red y también el \textit{backend} que se expone al resto de dominios. Ya que los dominios de dispositivos son dominios normales sin privilegios, es posible ejecutar gran parte de código, como la pila de protocolos de comunicaciones en máquinas virtuales sin privilegios. Incluso en el caso de que un usuario malintencionado ganara acceso al dominio del driver de red, no podría hacer caer el sistema completo debido al aislamiento existente entre dominios. Esta forma de configurar Xen permite una gran flexibilidad a la hora de discretizar en componentes aislados sistemas complejos.
+
+\subsection{Xen en ARM}
+\subsubsection{Arquitectura}
+
+La implementación de Xen en ARM difiere en gran medida de la que existe para las arquitecturas x86. Originalmente Xen se desarrollo para arquitecturas Intel x86 y tuvo que ser portada para ARM. Los desarrolladores aprovecharon la ocasión para deshacerse de muchas líneas de código que ya no eran útiles y se habían ido acumulando con los años en el desarrollo. Una de las características que eliminaron fué la emulación ya que las iterfaces emuladas son lentas e inseguras. QEMU, que es usado para la emulación en la implementación de Xen para x86, a pesar de ser un código que goza de buena salud y que es mantenido por la comunidad de software de código abierto, es muy grande tanto en líneas de código como tamaño de ejecutable. Para la implementación de Xen en ARM se optó por hacerlo cuanto más sencillo y más pequeño mejor. Por ese motivo QEMU no está presente. En lugar de eso se trata de aprovechar las extensiones de virtualización del hardware tanto como es posible y utilizar interfaces \textit{paravirtualizadas} para IO. Como resultado de esto Xen en ARM es más rápido y seguro \cite{xen_arm_whitepaper}
+
+\subsubsection{Xen y ARMv8}
+
+Las extensiones de virtualización de ARM resultan muy adecuadas para la arquitectura de Xen:
+\begin{itemize}
+  \item Xen se ejecuta por completo en el nivel de excepcion de hipervisor.  Xen deja el EL1 para el modo kernel del sistema operativo de la máquina virtual y el EL0 para para las aplicaciones de usuario. Los hipervisores de tipo 2 sufren con el constante cambio entre modo hipervisor y modo kernel. Al ejecutarse completamente en EL2, Xen permite reducir el número de cambios de contexto necesarios.
+  \item La inclusión de la intrucción HVC, permite al kernel invocar \textit{hypercalls} hacia Xen.
+  \item Xen utiliza 2 fases en la MMU para asignar memoria a las máquinas virtuales.
+  \item Se emplean timers genéricos tanto para recivir interrupciones de tiempo como para inyectarlas en las máquinas virtuales.
+  \item Xen configura en GIC las interrupciones necesarias tanto para su funcionamiento como para inyectar interrupciones en los sistemas guest.
+\end{itemize}
+
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.90\textwidth]{recursos/xen_3.png}
+  \caption{Xen en ARMv8}
+  \label{fig:xen_3}
+\end{figure*}
+
+El Dom0 arranca exáctamente igual que lo haría nativamente. Usa el \textit{device-tree} para descubrir el hardware (en caso de Linux u otros Dom0 que se basen en \textit{device-tree}) y carga los drivers correspondientes. Al encontrarse con el nodo de hipervisor, el Dom0 es consciente de que se está ejecutando sobre Xen y puede inicializar los \textit{backends} que se necesiten.
+
+\subsubsection{Tamaño del código}
+
+Debido al buen acople entre la arquitectura de Xen y las extensiones de virtualización de ARMv8 y a la limpieza de código de x86 efectuada, el tamaño de Xen para ARM ha resultado ser una sexta parte de lo que existe para x86\_64 como se aprecia en el siguiente resumen para la versión 4.4.0.
+
+\begin{table}[htb]
+
+	\label{table:results45}
+  \centering
+
+	\begin{tabular}{ |c|c|c|c|c| }
+		\hline
+     & Common & ARMv7 & ARMv8 & Total\\
+    \hline
+    xen/arch/arm          & 11,767      & 3,503  & 1,812   & 17,082 \\
+    C                     & 11,587      & 954    & 813	    & 13,354 \\
+    ASM                   & 180         & 2,549  & 999     & 3,728  \\
+    xen/include/asm-arm   & 4,786       & 984    & 1,050   & 6,820  \\
+    Total ARM	            & 16,553  & 4,487  & 2,862        & 23,902 \\
+    \multicolumn{4}{|c|}{x86\_64}                           & Total\\
+	\end{tabular}
+	\caption{Número de lineas de código de Xen}
+
+\end{table}
+
+\begin{stripedtable}[htb]
+	\centering
+	\caption{Risks to $A_5$ after the implementation of the selected safeguards}
+	\label{table:risk}
+	\begin{scriptsize}
+	\begin{tabular}{cccc}
+		\toprule
+		\hiderowcolors
+		Threat & Confidentiality & Integrity & Authenticity \\
+		\midrule
+		\showrowcolors
+		$T_{1}^{1}$ & (16.9, 161.72, 936.2, 3681.5) & (32.70, 239.7, 1295.6, 5197.4) & (25.1, 198.6, 1576.7, 5777.1)\\
+		$T_{1}^{2}$ & (0, 49.6, 458.1, 1791.2) & (0, 29.7, 289.7, 1397.1) & (0, 24.6, 352.6, 1552.9)\\
+		$T_{2}^{2}$ & (0, 49.6, 458.1, 1791.2) & (0, 29.7, 289.7, 1397.1) & (76, 379.3, 2074.3, 5588.4)\\
+		$T_{1}^{3}$ & (12.2, 110.5, 647.2, 2465.6) & (21.9, 147.3, 744.3, 2958.7) & (6.8, 58.5, 487.1, 1923.2)\\
+		$T_{1}^{4}$ & (34.8, 245.5, 1176.8, 3793.2) & (62.7, 327.4, 1353.3, 4551.9) & (19.5, 129.9, 885.7, 2958.7)\\
+		\bottomrule
+		\hiderowcolors
+	\end{tabular}
+	\end{scriptsize}
+\end{stripedtable}
