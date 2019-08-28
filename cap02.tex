@@ -205,4 +205,20 @@ Debido al buen acople entre la arquitectura de Xen y las extensiones de virtuali
 
 \section{Jailhouse}
 
-En primer lugar, Jailhouse se declara a sí mismo más preocupado del aislamiento y segemntación que de la virtualización. El nombre es hipervisor de particionamiento
+En primer lugar, Jailhouse se declara más preocupado del aislamiento y segmentación que de la virtualización. Se denomina \textit{hipervisor de particionamiento}. Jailhouse es muy ligero y no proporciona muchas de las funcionalidades que tradicionalmente proporcionan los hipervisores como pueden ser el sobreutilizamiento de recursos. Por ejemplo no ofrece vCPUs a los sistemas guest y no emula dispositivos que no tiene, por lo que no necesita de un scheduler que vaya repartiendo los recursos.\\
+Jailhouse proporciona
+
+
+\begin{figure*}[h]
+  \centering
+  \includegraphics[width=0.80\textwidth]{recursos/jailhouse_1.png}
+  \caption{Configuración típica de Jailhouse}
+  \label{fig:jail_1}
+\end{figure*}
+
+\begin{figure*}[h]
+  \centering
+  \includegraphics[width=0.80\textwidth]{recursos/jailhouse_2.png}
+  \caption{Particionamiento del sistema en Jailhouse}
+  \label{fig:jail_1}
+\end{figure*}
