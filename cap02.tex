@@ -186,29 +186,14 @@ Debido al buen acople entre la arquitectura de Xen y las extensiones de virtuali
     xen/include/asm-arm   & 4,786       & 984    & 1,050   & 6,820  \\
     Total ARM	            & 16,553  & 4,487  & 2,862        & 23,902 \\
     \multicolumn{4}{|c|}{x86\_64}                           & Total\\
+    \multicolumn{4}{|c|}{xen/arch/x86}                      & 124,615\\
+    \multicolumn{4}{|c|}{xen/include/asm-x86}               & 18,530 \\
+    \multicolumn{4}{|c|}{Total x86\_64}                     & 143,145\\
 	\end{tabular}
 	\caption{Número de lineas de código de Xen}
 
 \end{table}
 
-\begin{stripedtable}[htb]
-	\centering
-	\caption{Risks to $A_5$ after the implementation of the selected safeguards}
-	\label{table:risk}
-	\begin{scriptsize}
-	\begin{tabular}{cccc}
-		\toprule
-		\hiderowcolors
-		Threat & Confidentiality & Integrity & Authenticity \\
-		\midrule
-		\showrowcolors
-		$T_{1}^{1}$ & (16.9, 161.72, 936.2, 3681.5) & (32.70, 239.7, 1295.6, 5197.4) & (25.1, 198.6, 1576.7, 5777.1)\\
-		$T_{1}^{2}$ & (0, 49.6, 458.1, 1791.2) & (0, 29.7, 289.7, 1397.1) & (0, 24.6, 352.6, 1552.9)\\
-		$T_{2}^{2}$ & (0, 49.6, 458.1, 1791.2) & (0, 29.7, 289.7, 1397.1) & (76, 379.3, 2074.3, 5588.4)\\
-		$T_{1}^{3}$ & (12.2, 110.5, 647.2, 2465.6) & (21.9, 147.3, 744.3, 2958.7) & (6.8, 58.5, 487.1, 1923.2)\\
-		$T_{1}^{4}$ & (34.8, 245.5, 1176.8, 3793.2) & (62.7, 327.4, 1353.3, 4551.9) & (19.5, 129.9, 885.7, 2958.7)\\
-		\bottomrule
-		\hiderowcolors
-	\end{tabular}
-	\end{scriptsize}
-\end{stripedtable}
+\section{Jailhouse}
+
+En primer lugar, Jailhouse se declara a sí mismo más preocupado del aislamiento y segemntación que de la virtualización. El nombre es hipervisor de particionamiento
