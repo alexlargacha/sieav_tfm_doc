@@ -171,7 +171,7 @@ El Dom0 arranca exáctamente igual que lo haría nativamente. Usa el \textit{dev
 
 Debido al buen acople entre la arquitectura de Xen y las extensiones de virtualización de ARMv8 y a la limpieza de código de x86 efectuada, el tamaño de Xen para ARM ha resultado ser una sexta parte de lo que existe para x86\_64 como se aprecia en el siguiente resumen para la versión 4.4.0.
 
-\begin{table}[htb]
+\begin{table}[ht]
 
 	\label{table:results45}
   \centering
@@ -181,16 +181,25 @@ Debido al buen acople entre la arquitectura de Xen y las extensiones de virtuali
      & Common & ARMv7 & ARMv8 & Total\\
     \hline
     xen/arch/arm          & 11,767      & 3,503  & 1,812   & 17,082 \\
+    \hline
     C                     & 11,587      & 954    & 813	    & 13,354 \\
+    \hline
     ASM                   & 180         & 2,549  & 999     & 3,728  \\
+    \hline
     xen/include/asm-arm   & 4,786       & 984    & 1,050   & 6,820  \\
+    \hline
     Total ARM	            & 16,553  & 4,487  & 2,862        & 23,902 \\
+    \hline
     \multicolumn{4}{|c|}{x86\_64}                           & Total\\
+    \hline
     \multicolumn{4}{|c|}{xen/arch/x86}                      & 124,615\\
+    \hline
     \multicolumn{4}{|c|}{xen/include/asm-x86}               & 18,530 \\
+    \hline
     \multicolumn{4}{|c|}{Total x86\_64}                     & 143,145\\
+    \hline
 	\end{tabular}
-	\caption{Número de lineas de código de Xen}
+	\caption{Número de lineas de código de Xen en ARM y x86 \cite{xen_arm_whitepaper}}
 
 \end{table}
 
