@@ -214,7 +214,8 @@ En primer lugar, Jailhouse se declara más preocupado del aislamiento y segmenta
   \label{fig:jail_1}
 \end{figure*}
 
-Jailhouse habilita el multiprocesamiento asímetrico (AMP) desde Linux y divide el sistema en particiones aisaldas llamadas ``celdas''. Cada celda ejecuta un sistema guest y tiene una serie de recursos asignados (núcleos, zonas de memoria, dispositivos) que controla totalmente.
+Jailhouse habilita el multiprocesamiento asímetrico (AMP) desde Linux y divide el sistema en particiones aisaldas llamadas ``celdas''. Cada celda ejecuta un sistema guest y tiene una serie de recursos asignados (núcleos, zonas de memoria, dispositivos) que controla totalmente. El trabajo del hipervisor es gestionar las celdas y mantener el aislamientro entre ellas. Jailhouse basa su funcionanmiento principalmente en las extensiones de virtualización de las arquitecturas x86 y ARM, que son las que soporta actualmente.\\
+Un sistema que utiliza Jailhouse debe tener al menos una celda Linux que es la que arranca primero. En esta celda existe un módulo del kernel que lanza el hipervisor y tambien están las herramientas para crear, lanzar, parar y destruir las diferentes celdas. El rol de esta celda es parecido al Dom0 de Xen. Una vez creada una celda, la celda Linux pierde el conocimiento del núcleo(s) en el que se crea. De manera similar, los programas ejecutandose dentro de una celda no son conscientes de que están dentro de una máquina virtual, ni conocen la existencia de núcleos fuera de esa celda. El proceso de arranque se puede apreciar en la siguiente figura:\\
 
 \begin{figure*}[h]
   \centering
@@ -222,3 +223,5 @@ Jailhouse habilita el multiprocesamiento asímetrico (AMP) desde Linux y divide 
   \caption{Particionamiento del sistema en Jailhouse}
   \label{fig:jail_2}
 \end{figure*}
+
+Jailhouse basa su funcionanmiento principalmente en las extensiones de virtualización de las arquitecturas de microprocesadores x86 y ARM.
