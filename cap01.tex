@@ -44,7 +44,7 @@ Los hipervisores se clasifican habitualmente en dos tipos \cite{Popek1974}\cite{
 \item Tipo 1 o baremetal: en este grupo están los hipervisores que se ejecutan directamente sobre
 la plataforma electrónica sin ningún otro software de por medio del tipo sistema operativo u
 otros controladores. Tienen acceso directo al hardware y gestionan los diferentes sistemas guest. Estos hipervisores se caracterizan por ser una pequeña capa software que proporciona el entorno necesario para que los sistemas guest se puedan ejecutar. Son los que se utilizan habitualmente en sistemas embebidos ya que son los que menos impacto tienen sobre el rendimiento del sistema. Los primeros hipervisores, que desarrollo IBM en los años 60, son de este tipo \cite{hyper_review}\\
-\begin{figure*}[!htb]
+\begin{figure*}[h]
 	\centering
 	\includegraphics[width=0.65\textwidth]{recursos/type1_hyp.png}
 	\caption{Hipervisor de tipo 1}
@@ -53,7 +53,7 @@ otros controladores. Tienen acceso directo al hardware y gestionan los diferente
 \item Tipo 2: estos hipervisores suelen instalarse sobre un sistema operativo convencional (host) de base y
 acceden a los recursos del sistema (memoria, procesadores, almacenamiento, red, etc.) a
 través de él. Su funcionamiento es parecido al de cualquier otro programa que se ejecuta en el sistema host. Son responsables de abstraer al sistema guest del sistema host donde se están ejecutando. Algunos ejemplos de estos hipervisores son los populares VMWare y VirtualBox. Estos hipervisores tienen un impacto notable en el rendimiento, ya que todo el acceso a los recursos del sistema se hace a través del sistema host.
-\begin{figure*}[!htb]
+\begin{figure*}[h]
 	\centering
 	\includegraphics[width=0.65\textwidth]{recursos/type2_hyp.png}
 	\caption{Hipervisor de tipo 2}
