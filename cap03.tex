@@ -1,7 +1,11 @@
-\chapter{Selección de la plataforma}
+\chapter{Entorno de desarrollo}
 \chaptermark{Plataforma}
 
-A la hora de seeccionar la plataforma para desarrollar las pruebas sobre los hipervisores Xen y Jailhouse se han barajado diferentes alternativas
+A la hora de seeccionar la plataforma para desarrollar las pruebas sobre los hipervisores Xen y Jailhouse se han barajado diferentes alternativas. Los criterios que se han tenido en cuenta para la selección han sido principalmente dos:
+\begin{itemize}
+  \item Plataformas soportadas: cada uno de los dos hipervisores mantiene una lista de plataformas en las que se puede utilizar el hipervisor. Xen tiene un amplio recorrido en el mundo de los hipervisores y la lista de tarjetas electrónicas en las que se ha probado es muy grande. En el caso de Jailhouse, debido a que su trayectoria es más corta, esa lista de tarjetas soportadas se reduce enórmemente \cite{jailhouse_github}. La tarjeta seleccionada debía estar en las dos listas.
+  \item Herramientas para generar máquinas virtuales: con el objeto de evaluar un sistema virtualizado con ambos hipervisores, se requiere de las herramientas necesarias para generar tanto un dominio o celda Linux con su kernel, device-tree y sistema de ficheros y un sistema baremetal. Dependiendo de la 
+\end{itemize}
 
 \section{Extensiones de virtualización en ARMv8}
 
