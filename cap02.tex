@@ -5,10 +5,10 @@ En esta sección se van a presentar algunos de los hipervisores más populares u
 OKL4 Hypervisor es un hipervisor de tipo 1 de los basados en micro-kernel. Fue desarrollado originalmente por OK Labs, la cual forma parte del conglomerado General Dynamics, aprovechando la experiencia en micro-kernels que habían desarrollado gracias al éxito comercial de otro de los productos de OK Labs, el micro-kernel seL4 \cite{seL4}. En su visión, no existían razones para no poder combinar en una única implementación un micro-kernel y un hipervisor. De echo, durante mucho tiempo, el OKL4 se denominó \textit{OKL4 Microvisor}.\\
 El objetivo es dar soporte para la virtualización con la mínima sobrecarga del sistema. De esa forma, el modelo propuesto se basa en los siguientes principios \cite{okl4}:
 \begin{itemize}
-  \item La abstracción de ejecución que presenta el hipervisor a los sistemas operativos guest consta de una o varias CPUs virtuales (vCPU), en las que poder desplegar las tareas requeridas por las aplicaciones de usuario.
-  \item En el apartado de virtualización de memoria, el hipervisor proporcioa una MMU virtual (vMMU) con la que se mapea la memoria virtual de los sistemas guest en memoria física del sistema host.
-  \item La virtualización de los periféricos, se basa en el mapeo en memoria de registro de dispositivos virtuales y un sistema de interrupciones virtuales (vIRQ).
-  \item La comunicacion entre sistemas guest, se muestra como vIRQs (para sincronización) y canales. Los canales se implementan con FIFOs bidireccionales con una tamaño fijo especificado en el espacio de usuario.
+  \item La abstracción de ejecución que presenta el hipervisor a los sistemas operativos guest consta de una o varias CPUs virtuales (\acrshort{vCPU}), en las que poder desplegar las tareas requeridas por las aplicaciones de usuario.
+  \item En el apartado de virtualización de memoria, el hipervisor proporcioa una MMU virtual (\acrshort{vMMU}) con la que se mapea la memoria virtual de los sistemas guest en memoria física del sistema host.
+  \item La virtualización de los periféricos, se basa en el mapeo en memoria de registro de dispositivos virtuales y un sistema de interrupciones virtuales (\acrshort{vIRQ}).
+  \item La comunicacion entre sistemas guest, se muestra como \acrshort{vIRQ}s (para sincronización) y canales. Los canales se implementan con FIFOs bidireccionales con una tamaño fijo especificado en el espacio de usuario.
 \end{itemize}
 \begin{figure*}[!htb]
 	\centering
@@ -24,7 +24,7 @@ Este hipervisor tiene como uno de sus objetivos principales la seguridad \cite{o
 El hipervisor de WindRiver es también un hipervisor de tipo 1 que particiona el software que se ejecuta en uno o varios núcleos en múltiples tarjetas virtuales (Virtual Boards) con diferentes niveles de protección ya características. Está optimizado para ejecutar sistemas opetativos guest de propósito general (GPOS), sistema de tiempo real y sistemas operativos para aplicaciones críticas de seguridad \cite{windriver_1}.
 \subsection{Virtual Boards}
 La división del sistema propuesta por WindRiver se basa en tarjetas virtuales o particiones. Cada una de ellas puede contener un sistema operativo guest con sus diferentes aplicaciones ejecutandose o un programa si sistema operativo, lo que se denomina \textit{virtual board application}. El hipervisor es el encargado de controlar en qué núcleos se están ejecutando las virtual boards y las zonas de memoria a las que puede acceder. Una virtual board puede compartir un núcleo con con otra virtual board, tener un núcleo dedicado, o utilizar varios al mismo tiempo.
-\begin{figure*}[!htb]
+\begin{figure*}[h]
 	\centering
 	\includegraphics[width=0.75\textwidth]{recursos/windriver_hyp.png}
 	\caption{WindRiver Hypervisor}
@@ -39,7 +39,7 @@ El hipervisor de WindRiver es capaz de ejecutar sistemas operativos utilizando u
 \paragraph{Sistemas operativos sin modificaciones} El hipervisor de WindRiver permite la ejecución de sistemas operativos sin modificaciones de código del tipo Red Hat Enterprise Linux o Microsoft Windows dentro de una virtual board en microprocesadores Intel con extensiones de virtualización.\\
 
 \paragraph{Sistemas baremetal}
-El hipervisor permite la ejecución de virtual boards que no tengan sistema operativo denominadas \textit{bare metal executives}. Hay ciertas tareas en los sistemas embebidos que no requieren de capacidades que ofrece un sistema operativo ni la complejidad que añade. WindRiver proporciona una API abierta con la que presenta a estas virtual boards la forma de acceder a los recursos del sistema como la MMU, excepciones e interrupciones, núcleos de CPU y otros dispositivos necesarios para operar. Esta API permite beneficiarse de las capacidades de la virtualización mientras se mantiene la respuesta en tiempo real necesaria por la aplicación.
+El hipervisor permite la ejecución de virtual boards que no tengan sistema operativo denominadas \textit{bare metal executives}. Hay ciertas tareas en los sistemas embebidos que no requieren de capacidades que ofrece un sistema operativo ni la complejidad que añade. WindRiver proporciona una API abierta con la que presenta a estas virtual boards la forma de acceder a los recursos del sistema como la \acrshort{MMU}, excepciones e interrupciones, núcleos de CPU y otros dispositivos necesarios para operar. Esta API permite beneficiarse de las capacidades de la virtualización mientras se mantiene la respuesta en tiempo real necesaria por la aplicación.
 
 \paragraph{Paravirtualización y virtualización asistida por hardware}
 Como se ha mencionado anteriormente, muchas familias actuales de microprocesadores proporcionan mecanismos hardware para asistir en la virtualización. El hipervisor de WindRiver se vale de estos mecanismos para proporcionar servicios de virtualización. De la misma manera, existen muchos dispositivos que no proporcionan esta asistencia por hardware, y esos servicios de virtualización están implementandos en software impactando en el rendimiento del sistema. Para esos casos se requiere de paravirtualización del sistema operativo.\\
@@ -48,7 +48,7 @@ La paravirtualización es la modificación de las llamadas privilegiadas de un s
 \begin{itemize}
   \item Niveles privilegiados: un sistema virtualizado requiere normalmente de tres niveles de privilegio distintos: uno para el hipervisor, otro para el sistema operativo guest y otro para las aplicaciones. Las arquitecturas de microprocesadores que no proporcionan aistencia por hardware suelen tener solo dos niveles de privilegio. La tarea de la paravirtualización es emular el nivel que falta. Las instrucciones privilegiadas tienen que ser sustituidas por llamadas a la API del hipervisor.
   \item Acceso a dispositivos: un driver en un sistema operativo que se ejecuta nativamente puede acceder a cualquier dispositivo. En un entorno virtualizado, el hipervisor es el que arbitra y decide si una determinada virtual board tiene acceso a un dispositivo o no. Esto incluye interrupciones, dispositivos de entrada salida, registros, y acceso directo a memoria (DMA)
-  \item MMU: el hipervisor controla la MMU en un entorno virtualizado. Algunos procesadores con asistencia hardware perimiten a un sistema guest modificar la MMU de la virtual board. Si no se dispone de la asistencia hardware, el guest debe colaborar con el hipervisor para modificar la MMU.
+  \item \acrshort{MMU}: el hipervisor controla la \acrshort{MMU} en un entorno virtualizado. Algunos procesadores con asistencia hardware perimiten a un sistema guest modificar la \acrshort{MMU} de la virtual board. Si no se dispone de la asistencia hardware, el guest debe colaborar con el hipervisor para modificar la \acrshort{MMU}.
 \end{itemize}
 
 \paragraph{Acceso a dispositivos}
@@ -84,7 +84,7 @@ El hipervisor de WindRiver proporciona un modelado de dispositivo que permite as
 \end{itemize}
 
 \paragraph{Comunicaciones entre guests}
-El hipervisor de WindRiver facilita la comunicación rápida entre virtual boards proporcionando mensajería punto a punto, comunicación entre procesos multi sistema operativo o \textit{multi-OS inter-process communication (MIPC)} (MIPC), y comunicaciones IP usando un controlador virtual de red (VNIC). Existen dos formas de transporte de mensajes: memoria compartida para conexiones MIPC y sistema seguro de transporte tanto para conexiones MIPC como para conexiones VNIC. Las conexiones rápidas por IP entre virtual boards se consiguen utilizando el driver VNIC del sistema guest y creando uno o más switches ethernet virtuales dentro del hipervisor.
+El hipervisor de WindRiver facilita la comunicación rápida entre virtual boards proporcionando mensajería punto a punto, comunicación entre procesos multi sistema operativo o \textit{multi-OS inter-process communication (MIPC)} (\acrshort{MIPC}), y comunicaciones IP usando un controlador virtual de red (VNIC). Existen dos formas de transporte de mensajes: memoria compartida para conexiones \acrshort{MIPC} y sistema seguro de transporte tanto para conexiones \acrshort{MIPC} como para conexiones \acrshort{VNIC}. Las conexiones rápidas por IP entre virtual boards se consiguen utilizando el driver \acrshort{VNIC} del sistema guest y creando uno o más switches ethernet virtuales dentro del hipervisor.
 \begin{figure*}[!htb]
   \centering
   \includegraphics[width=0.65\textwidth]{recursos/windriver_com.png}

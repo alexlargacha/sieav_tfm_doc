@@ -29,7 +29,7 @@ La tarjeta electrónica que se ha utilizado se compone de dos partes: UltraZed-E
 
     \begin{figure*}[h]
     	\centering
-    	\includegraphics[width=0.55\textwidth]{recursos/mpsoc_arch.png}
+    	\includegraphics[width=0.75\textwidth]{recursos/mpsoc_arch.png}
     	\caption{Bloques de MPSoC EG}
     	\label{fig:mpsoc_arch}
     \end{figure*}
@@ -49,17 +49,31 @@ La tarjeta electrónica que se ha utilizado se compone de dos partes: UltraZed-E
 \begin{figure*}[h]
 	\centering
 	\includegraphics[width=0.65\textwidth]{recursos/ultrazed-eg-carrier.png}
-	\caption{Hipervisor de tipo 1}
+	\caption{UltraZed\texttrademark IO Carrier Card}
 	\label{fig:ultrazed-eg-carrier}
 \end{figure*}
-
-UltraZed\texttrademark IO Carrier Card
 
 \subsection{Otros}
 
 \begin{itemize}
-  \item Analizador lógico
-  \item JTAG HS2
+  \item Analizador lógico de 8 canales: con el objeto de realizar algunas medidas empíricas de tiempos de reacción de los hipervisores se ha utilizado como ayuda el siguiente analizador:\\
+  \url{https://eur.saleae.com/products/saleae-logic-8}
+  \\Algunas de las medidas se han realizado con temporizadores como se verá posteriormente. Aún así el analizador ha servido de apoyo a la hora de comprobar que los resultados obtenidos de los temporizadores eran correctos.
+  \item Cable JTAG-HS2: a fin de cargar de forma dinámica y depurar los programas que se han hecho se ha empleado el siguiente debugger aptos para productos de Xilinx.\\
+
+  \url{https://www.digikey.es/es/product-highlight/d/digilent/jtag-hs2-programming-cable}
 \end{itemize}
 
 \section{Herramientas Software}
+
+A continuación se listan las herramientas software que se han empleado en la elaboración de los tests en los hipervisores Xen y Jailhouse. Para la plataforma electrónica seleccionada ha sido suficiente la licencia gratuita (WebPACK) que proporciona Xilinx.
+
+\begin{itemize}
+  \item Vivado Design Suite 2018.3: este paquete de software de Xilinx es el que permite generar los que se denomina la \textit{Hardware Platform} y exportala a fin de poder crear proyectos de software sobre ella como se verá más adelante. Esta \textit{Hardware Platform} contiene tanto la parte de configuración de la parte de PS del Zynq\textregistered UltraScale+\texttrademark MPSoC como el bitstream que se programa en la zona PL.\\
+  \url{https://www.xilinx.com/products/design-tools/vivado.html}
+  \item Xilinx Software Development Kit (XSDK) 2018.3: la herramienta \acrshort{XSDK} es un entorno inetrado de desarrollo basado en eclipse que permite desarrollar aplicaciones para ejecutarse sobre la plataforma generada por Vivado. Mediante un sencillo interfaz gráfico se pueden crear aplicaciones tanto baremetal, como FreeRTOS y Linux. Soporta todas las familias de microprocesadores existentes en las plataformas de Xilinx: MicroBlaze, ARM Cortex-R5, ARM Cortex-A9 y ARM Cortex-A53. Cabe destacar que también inluye un sistema de depurado de software y herramientas de análisis de rendimiento.\\
+  \url{https://www.xilinx.com/products/design-tools/embedded-software/sdk.html}
+  \item Petalinux Tools 2018.3: en este paquete se proporcionan todas las herramientas y componentes software para construir un sistema embebido basado en Linux en las plataformas de Xilinx.\\
+  Desde las últimas versiones su sistema de compilación y generación de software está basado en el proyecto yocto (\url{https://www.yoctoproject.org/}). Xilinx añade una capa software sobre yocto para manejar las particularizaciones de sus productos.\\
+  \url{https://www.xilinx.com/products/design-tools/embedded-software/petalinux-sdk.html}
+\end{itemize}
