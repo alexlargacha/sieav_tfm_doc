@@ -16,12 +16,34 @@ En el momento de iniciar el trabajo fin de máster no se disponía de la tarjeta
 \subsection{Ultrazed}
 La tarjeta electrónica que se ha utilizado se compone de dos partes: UltraZed-EG\texttrademark SOM y UltraZed\texttrademark IO Carrier Card con las siguientes características técnicas:
 \begin{itemize}
-  \item Procesador zu3egblablabal que inluye entre otras cosas:
+  \item Procesador UltraScale+\texttrademark MPSoC XZU3EG-1SFVA625E que inluye:
   \begin{itemize}
-    \item 4 núcleos ARM Cortex A53 (ARMv8)
-  \end{itemize}
-  \item 12 conectore PMOD conectados a la parte de PL
-  \item 2 USB-UART
+    \item 4 núcleos ARM Cortex-A53 (ARMv8) hasta 1.2 GHz
+    \item 2 núcleos ARM Cortex-R5 hasta 500 MHz.
+    \item Procesador gráfico Mali™-400 MP2 hasta 600 MHz
+    \item 154K Celdas lógicas
+    \item 141K Flip-Flops
+    \item 7.6 Mb \acrshort{BRAM}
+    \item 360 bloques \acrshort{DSP}
+    \end{itemize}
+
+    \begin{figure*}[h]
+    	\centering
+    	\includegraphics[width=0.55\textwidth]{recursos/mpsoc_arch.png}
+    	\caption{Bloques de MPSoC EG}
+    	\label{fig:mpsoc_arch}
+    \end{figure*}
+
+  \item 2 GB \acrshort{DDR}4 \acrshort{SDRAM}
+  \item 64 MB memoria flash \acrshort{QSPI}
+  \item 8 GB memoria flash \acrshort{eMMC}
+  \item 1 Gigabit Ethernet
+  \item 1 conector para tarjetas microSD
+  \item 12 conectore \acrshort{PMOD} conectados a la parte de \acrshort{PL}
+  \item 1 \acrshort{DIP} switch de 8 posiciones conectado a \acrshort{PL}
+  \item 8 LEDs conectados a \acrshort{PL}
+  \item 1 conector \acrshort{JTAG}
+  \item 2 \acrshort{USB}-\acrshort{UART}
 \end{itemize}
 
 \begin{figure*}[h]
