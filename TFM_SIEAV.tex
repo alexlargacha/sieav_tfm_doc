@@ -16,7 +16,11 @@
 \usepackage{float}
 \usepackage{changepage}
 \usepackage{subcaption}
-\usepackage{glossaries}
+\usepackage[acronym, toc]{glossaries}
+
+\makeglossaries
+
+\input{glosario.tex}
 
 \usepackage[table]{xcolor} % Necesaria la opción table para usar filas de colores en las tablas.
 \usepackage{lipsum} % Para usar texto de relleno, sirve para tener una idea de cómo queda
@@ -91,7 +95,7 @@
 %	INDICE DE FIGURAS, TABLAS Y ALGORITMOS
 \listoffigures
 \listoftables
-\printglossaries
+\printglossary[type=\acronymtype]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% CUERPO DEL TFM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \mainmatter
