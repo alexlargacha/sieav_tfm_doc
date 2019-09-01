@@ -13,7 +13,7 @@ Debido a la familiaridad con las plataformas de Xilinx y sus herramientas y al c
 En el momento de iniciar el trabajo fin de máster no se disponía de la tarjeta Xilinx ZCU102, que aparece en la lista de plataformas soportadas en Xen y Jailhouse. En cambio, la platarforma que se podía utilizar era la UltraZed\texttrademark y debido a que incluye un chip de la familia Zynq\textregistered UltraScale+\texttrademark MPSoC al igual que la ZCU102, se estimó que las modificaciones necesarias para poder ejecutar ambos hipervisores no serían demasiado costosas, por lo que el desarrollo se ha efectuado sobre esa plataforma.
 
 \section{Plataforma electrónica}
-\subsection{Ultrazed}
+\subsection{Ultrazed\texttrademark}
 La tarjeta electrónica que se ha utilizado se compone de dos partes: UltraZed-EG\texttrademark SOM y UltraZed\texttrademark IO Carrier Card con las siguientes características técnicas:
 \begin{itemize}
   \item Procesador UltraScale+\texttrademark MPSoC XZU3EG-1SFVA625E que inluye:
@@ -53,13 +53,37 @@ La tarjeta electrónica que se ha utilizado se compone de dos partes: UltraZed-E
 	\label{fig:ultrazed-eg-carrier}
 \end{figure*}
 
+\subsection{Configuración de SoC}
+
+En la plataforma electrónica que se ha especificado, el componente principal y sobre el que se van a ejecutar los programas y pruebas que se desarrollen es el UltraScale+\texttrademark MPSoC. Este compoente dispone de una parte de \acrshort{PS} en la que se encueltran los 4 núcleos ARM Cortex-A53 en los que se van a ejecutar las celdas o dominios en los que se va dividir el sistema virtualizado. Respecto a la zona de \acrshort{PL}, se va a utlizar como mero instrumento de medida y entrada/salida. En la siguiente figura aparece el diseño de bloques que se ha implementado:
+
+\begin{figure*}[h]
+	\centering
+	\includegraphics[width=0.95\textwidth]{recursos/vivado_1.png}
+	\caption{Diseño de bloques de Vivado}
+	\label{fig:vivado_1}
+\end{figure*}
+
+Como se puede observar, se trata de un sistema muy sencillo en el que todos los bloques se conectan por bus AXI y por tanto aparecen mapeados en memoria del microprocesador. El objetivo es medir la latencia que introducen los hipervisores en el tratamiento de interrupciones en sistemas guest baremetal y con ese fin se han dispuesto los siguientes bloques y conexiones entre ellos.\\
+
+Se ha tomado como generador de interrupciones el cambio en el valor de alguna de las entradas del \acrshort{DIP} switch que está conectado a \acrshort{PL}.
+Los pines del switch están conectados como entradas del bloque \acrshort{AXI} \acrshort{GPIO} \cite{axi_gpio} \textit{axi\_gpio\_0}. En este bloque se ha habilitado la salida de la interrupción y se ha conectado al grupo de interrupciones de \acrshort{PL} a \acrshort{PS} número 1. Este grupo de interupciones tiene unos números de interrupción que luego tendrán que ser gestionados desde el programa. Estos números los determina la propia arquitectura de Xilinx y ARM. En el presente caso la interrupción es la número 136 \cite{axi_trm}. Más adelante se verá como se utiliza este número en el software.\\
+
+Con objeto de medir con precisión la latencia introducida se ha utilizado un bloque \acrshort{AXI} Timer \cite{axi_timer}. Este bloque se configura en modo captura y como se puede ver en el diagrama, una de las entradas de captura es la interrupción generada por el bloque \acrshort{AXI} \acrshort{GPIO} descrito anteriormente. La otra señal se captura la genera el bloque \textit{axi\_gpio\_3}. La idea principal detrás de esta configuración es poder capturar el valor del contador del Timer en el momento en el que se produce la interrupción y también en el momento en el que la rutina de atención a la interrupción entra y activa la salida de \textit{axi\_gpio\_3}. La diferencia entre estos dos valores es el tiempo que se tarda en atender a la interrupción.
+
+El bloque \acrshort{AXI} \acrshort{GPIO} con nombre \textit{axi\_gpio\_1} tiene su salida conectada a los diodos LED conectados a PL disponibles en la UltraZed. Estos LEDs se han utilizado simplemente como intrumento de verificación visual de que se están ejecutando los programas como se espera.\\
+
+También se ha utilizado uno de los conectores PMOD para poder monitorizar las señales en curso con un analizador lógico a fin de poder comprobar que los resultados obtenidos de la resta de tiempos en el Timer son coherentes.\\
+
+En la configuración de la zona de PS se han utilizado las definiciones de tarjeta que están alojadas en \url{https://github.com/Avnet/bdf}. Estas definiciones configuran el MPSoc para el SOM de UltraZed\texttrademark que se está empleando.
+
 \subsection{Otros}
 
 \begin{itemize}
   \item Analizador lógico de 8 canales: con el objeto de realizar algunas medidas empíricas de tiempos de reacción de los hipervisores se ha utilizado como ayuda el siguiente analizador:\\
   \url{https://eur.saleae.com/products/saleae-logic-8}
   \\Algunas de las medidas se han realizado con temporizadores como se verá posteriormente. Aún así el analizador ha servido de apoyo a la hora de comprobar que los resultados obtenidos de los temporizadores eran correctos.
-  \item Cable JTAG-HS2: a fin de cargar de forma dinámica y depurar los programas que se han hecho se ha empleado el siguiente debugger aptos para productos de Xilinx.\\
+  \item Cable JTAG-HS2: a fin de cargar de forma dinámica y depurar los programas que se han hecho se ha empleado el siguiente debugger apto para productos de Xilinx.\\
 
   \url{https://www.digikey.es/es/product-highlight/d/digilent/jtag-hs2-programming-cable}
 \end{itemize}
