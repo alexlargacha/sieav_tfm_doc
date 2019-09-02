@@ -205,7 +205,7 @@ La estructura principal que define el sistema tiene los siguientes campos:
 
 \subsubsection{Celda baremetal}
 
-La celda \textit{inmate} que aloja a la aplicación baremetal es relativamente sencilla debido a que lo único que se necesita especificar el núcleo o núcleos en los que va a desplegarse, las zonas de memoria que se van a asignar y las interrupciones que se van a manejar. A grandes rasgos estas tres definiciones aparecen de la siguiente forma en el fichero \textit{ultrazed\_ehu\_irq.c}:
+La celda \textit{inmate} que aloja a la aplicación baremetal es relativamente sencilla debido a que lo único que se necesita especificar es el núcleo o núcleos en los que va a desplegarse, las zonas de memoria que se van a asignar y las interrupciones que se van a manejar. A grandes rasgos estas tres definiciones aparecen de la siguiente forma en el fichero \textit{ultrazed\_ehu\_irq.c}:
 
 \begin{lstlisting}[style=CStyle]
 (...)
@@ -268,6 +268,57 @@ La celda \textit{inmate} que aloja a la aplicación baremetal es relativamente s
 		},
 	}
 (...)
+\end{lstlisting}
+
+De estas secciones, cabe destacar la parte en la que se le asignan a la celda solo las regiones de memoria correspondientes a los periféricos de \acrshort{PL} y a la \acrshort{UART} que va a manejar el programa.\\
+En cuanto a las interrupciones, en el campo \textit{pin\_bitmap} dentro de \textit{irqchips} solo se activan los flags correspondientes a las interupciones número 54 y 136, \acrshort{UART} 1 y \acrshort{PL}-\acrshort{PS} Grupo 1 interrupción 0 respectivamente \cite{mpsoc_registers}.
+
+\textbf{Aplicación baremetal}
+
+Jailhouse proporciona una serie de funciones genéricas de configuración del sistema para poder ser utilizadas por las celdas \textit{inmates} en el directorio \textit{inmates/lib}. Aquí se encuentran por ejemplo la API para configurar el \acrshort{GIC}, Timer o \acrshort{UART}. Tomando como referencia el ejemplo existente para el manejo de la interrupción del timer privado de ARM (número 27) se ha desarrollado la aplicación que en respuesta al la interupción 136 producida por un cambio en los valores del switch conectado a \acrshort{PL} descrito en la sección \ref{vivado_config}.
+
+El código resultante queda tan simple como el que se muestra a continuación:
+\begin{lstlisting}[style=CStyle]
+#include <inmate.h>
+#include <gic.h>
+
+#define GPIO_IRQ_NUM		136
+
+#define GPIO_LEDS_BASE_ADDRESS  	0xA0001000
+#define GPIO_SWITCH_BASE_ADDRESS  	0xA0000000
+
+static void handle_IRQ(unsigned int irqn)
+{
+    unsigned int *p_gpio_switch = (unsigned int *)GPIO_SWITCH_BASE_ADDRESS;
+    map_range((void *)GPIO_SWITCH_BASE_ADDRESS, 0x2000, MAP_UNCACHED);
+
+	if (irqn != GPIO_IRQ_NUM)
+		return;
+
+	printk("Button pressed\n");
+
+    mmio_write32((p_gpio_switch + 0x120/4), 0x1); /* Clear channel 1 interrupts */
+
+}
+
+void inmate_main(void)
+{
+	unsigned int *p_gpio_switch = (unsigned int *)GPIO_SWITCH_BASE_ADDRESS;
+
+	printk("Initializing the GIC for GPIO IRQ...\n");
+
+    map_range((void *)GPIO_SWITCH_BASE_ADDRESS, 0x2000, MAP_UNCACHED);
+
+	/* AXI GPIO IRQ config */
+	mmio_write32((p_gpio_switch + 0x4/4), 0xFF); /* All inputs */
+	mmio_write32((p_gpio_switch + 0x128/4), 1 << 0); /* Enable channel 1 interrupts */
+	mmio_write32((p_gpio_switch + 0x11C/4), 1 << 31); /* Enable global interrupt */
+
+	gic_setup(handle_IRQ);
+	gic_enable_irq(GPIO_IRQ_NUM);
+
+	halt();
+}
 \end{lstlisting}
 
 \subsection{Test Linux + baremetal}
