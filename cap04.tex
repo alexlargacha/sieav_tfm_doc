@@ -1,11 +1,278 @@
-\chapter{Xen y Jailhouse en UltraZed}
+\chapter{Jailhouse y Xen en UltraZed}
+
+\section{Jailhouse}
+Como se ha expuesto anteriormente, la denominación de Jailhouse es la de un \textit{hipervisor de particionamiento basado en Linux} \cite{jailhouse_github}. Es capaz de ejecutar programas baremetal junto con sistemas operativos guest y siempre partiendo desde Linux. Con este proposito, empleando las extensiones de virtualización del microprocesador en cuestión, configura una serie de celdas que no pueden interferirse entre ellas.\\
+Una vez que Jailhouse está activado, toma el control absoluto del harwdare que tiene debajo. Necesita de un sitema operativo Linux que lo cargue y sus herramientas de control de celdas están basadas también en Linux.
+
+\subsection{Compilación de Jailhouse}
+El código fuente del proyecto Jailhouse está alojado en \cite{jailhouse_github}. En el momento de la elaboración del presente documento la versión en curso es la 0.11.\\
+Desde el punto de vista de Linux Jailhouse es in módulo del kernel (extensión .ko). En el momento que se carga el módulo, Jailhouse inserta el firmware del propio hipervisor en una zona de memoria reservada en arranque y crea el dispositivo \textit{/dev/jailhouse} en el sistema. Este dispositivo es el que utilizan las herramientas de gestion de Jailhouse que se ejecutan desde Linux para interactuar con el hipervisor y crear, arrancar, parar y destruir los sitemas guest o celdas.\\
+
+El proceso de creación del propio módulo de Jailhouse necesita de una serie de herramientas de compilación cruzada para la arquitectura de la plataforma que se está utilizando y también necesita el código fuente del kernel de Linux en el que se va a instalar como módulo.\\
+En el anexo \ref{petalinux} se detalla el proceso de configuración y generación de un proyecto PetaLinux basado en la plataforma anteriormente descrita. Petalinux proporciona el compilador, linker, etc. necesarios a la hora de generar software para la arquitectura ARMv8 y el proceso de construcción del proyecto requiere del código fuente del kernel a fin de generar la imagen que de ejecutará en la tajeta Ultrazed\texttrademark.\\
+
+Con todos estos elementos en su sitio, lo único que hay que hacer para compilar Jailhouse para la arquitectura destino y el kernel de Linux generado con PetaLinux es ejecutar los siguientes commando el la \textit{shell}
+
+\begin{lstlisting}[style=CStyle]
+  $ git clone git@github.com:siemens/jailhouse.git
+  $ cd jailhouse
+  $ export ARCH=arm64
+  $ export CROSS_COMPILE=aarch64-linux-gnu-
+  $ make KDIR=~/workspace/ehu-upv/linux-xlnx-xilinx-v2018.3/
+\end{lstlisting}
+
+Al final de este proceso, si todo ha ido bien, se habrá generado el módulo del kernel \textit{jailhouse.ko}.
+
+\begin{lstlisting}[style=CStyle]
+...
+Building modules, stage 2.
+  MODPOST 1 modules
+  CC      /home/alex/workspace/ehu-upv/jailhouse/driver/jailhouse.mod.o
+  LD [M]  /home/alex/workspace/ehu-upv/jailhouse/driver/jailhouse.ko
+\end{lstlisting}
+
+\subsection{Configuración de celdas}
+
+Las celdas en Jailhouse se definen mediante una serie de ficheros \textit{.c} que se encuentran en la carpeta \textit{configs}. En esta localización aparen las carpetas correspondientes a las arquitecturas de microprocesadores soportadas por Jailhouse.
+
+\begin{lstlisting}[style=CStyle]
+$ ls -la
+total 32
+drwxrwxr-x  5 alex alex  4096 Jun  9 21:27 .
+drwxrwxr-x 14 alex alex  4096 Jul 21 20:49 ..
+drwxrwxr-x  3 alex alex  4096 Jun 23 12:59 arm
+drwxrwxr-x  3 alex alex 12288 Jul 21 19:06 arm64
+-rw-rw-r--  1 alex alex  1038 Jun  9 21:26 Makefile
+-rw-rw-r--  1 alex alex     0 Jul 21 20:49 modules.order
+drwxrwxr-x  2 alex alex  4096 Jun 29 20:03 x86
+\end{lstlisting}
+
+Para cada arquitectura existe un fichero \textit{.c} por cada celda del sistema. La celda Linux llamada \textit{root cell} siempre está presente y para cada caso de tarjeta existen diferentes celdas de referencia dependiendo de la aplicación. El resto de celdas reciben el nombre de \textit{inmate}. Si para una tarjeta en concreto existe la celda Linux y otras dos celdas \textit{inmate}, aparecerán tres ficheros; cada uno con la definición de una celda. Por ejemplo para la tarjeta Ultra96 (\url{https://www.96boards.org/product/ultra96/}) existen los siguientes ficheros:
+
+\begin{lstlisting}[style=CStyle]
+alex@xubuntu16:~/workspace/ehu-upv/jailhouse/configs$ ls -la arm64/ultra96*
+-rw-rw-r-- 1 alex alex 2661 Jul 21 17:30 arm64/ultra96.c
+-rw-rw-r-- 1 alex alex 1665 Jul 21 17:30 arm64/ultra96-gic-demo.c
+-rw-rw-r-- 1 alex alex 2745 Jul 21 17:30 arm64/ultra96-linux-demo.c
+\end{lstlisting}
+
+Al compilar Jailhouse se genera un fichero con extensión \textit{.cell} por cada \textit{.c}. Los ficheros \textit{.cell} son los que utiliza la herramienta de gestión de sistemas guest desde la celda Linux.\\
+En el momento de elaborar el presente TFM la tarjeta UltraZed\texttrademark no estaba entre la lista de plataformas soportadas y probadas de Jailhouse por lo que no existía ningún fichero de celda para la misma. Como ya se ha comentado anteriormente, al incluir in chip de la misma familia que la tarjeta Xilinx ZCU102 y la Ultra96, se consideró que la adaptación no sería demasiado complicada por lo que se han creado los ficheros correspondientes a la \textit{root cell} y a la celda con la aplicación baremetal de la forma que se describe en los siguientes apartados.
+
+\subsubsection{Celda Linux}
+
+La celda de Linux o \textit{root cell} contiene la definición de lo que va a ser el sistema y de cómo se van a repartir los diferentes recursos. El fichero creado para la UltraZed\texttrademark \textit{ultrazed\_ehu.c} contiene la estructura \textit{config} que necesita Jailhouse a fin de localizar en el mapa de memoria los diferentes recursos de la plataforma.
+\begin{lstlisting}[style=CStyle]
+#include <jailhouse/types.h>
+#include <jailhouse/cell-config.h>
+
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
+
+struct {
+	struct jailhouse_system header;
+	__u64 cpus[1];
+	struct jailhouse_memory mem_regions[8];
+	struct jailhouse_irqchip irqchips[1];
+} __attribute__((packed)) config = {
+	(...)
+\end{lstlisting}
+
+La estructura principal que define el sistema tiene los siguientes campos:
+\begin{itemize}
+  \item Cabecera: en este campo se especifican las direciones físicas de memoria de los componentes que necesita configurar Jailhouse. Todas estas direcciones corresponden al mapa de memoria del Zynq\textregistered UltraScale+\texttrademark MPSoC \cite{mpsoc_registers}.\\
+  \begin{lstlisting}[style=CStyle]
+  (...)
+  .header = {
+		.signature = JAILHOUSE_SYSTEM_SIGNATURE,
+		.revision = JAILHOUSE_CONFIG_REVISION,
+		.flags = JAILHOUSE_SYS_VIRTUAL_DEBUG_CONSOLE,
+		.hypervisor_memory = {
+			.phys_start = 0x40000000,
+			.size =       0x01000000,
+		},
+		.debug_console = {
+			.address = 0xff000000,
+			.size = 0x1000,
+      .type = JAILHOUSE_CON_TYPE_XUARTPS,
+			.flags = JAILHOUSE_CON_ACCESS_MMIO |
+				 JAILHOUSE_CON_REGDIST_4,
+		},
+		.platform_info = {
+			.pci_mmconfig_base = 0xfc000000,
+			.pci_mmconfig_end_bus = 0,
+			.pci_is_virtual = 1,
+			.pci_domain = -1,
+			.arm = {
+				.gic_version = 2,
+				.gicd_base = 0xf9010000,
+				.gicc_base = 0xf902f000,
+				.gich_base = 0xf9040000,
+				.gicv_base = 0xf906f000,
+				.maintenance_irq = 25,
+			},
+		},
+		.root_cell = {
+			.name = "UltraZed SoM ehu",
+
+			.cpu_set_size = sizeof(config.cpus),
+			.num_memory_regions = ARRAY_SIZE(config.mem_regions),
+			.num_irqchips = ARRAY_SIZE(config.irqchips),
+			.vpci_irq_base = 136-32,
+		},
+    (...)
+  \end{lstlisting}
+  Por ejemplo aquí aparece la dirección en la que se va a alojar el propio hipervisor. En este ejemplo la dirección es la 0x40000000. Esta dirección ha de estar libre en el momento en el que Linux instale el módulo del kernel que carga el hipervisor justo por encima del hardware como se muestra en la figura \ref{fig:jail_2}. Esta dirección forma parte de la memoria \acrshort{DDR} \acrshort{RAM} y a fin de garantizar que está libre cuando arranca la \textit{root cell} Linux lo que se hace es modificar los parámetros con los que el cargador de arranque U-Boot lanza el kernel, lo que se conoce como \textit{kernel command line}. En el \textit{device-tree} se puede definir el tamaño al que se le da acceso a Linux mediante el parámetro ``mem'' dentro de ``bootargs''.
+  \begin{lstlisting}[style=CStyle]
+  chosen {
+		bootargs = "earlycon console=ttyPS0,115200 clk_ignore_unused earlyprintk mem=1024M";
+		stdout-path = "serial0:115200n8";
+	       };
+  \end{lstlisting}
+  Al proporcionar 1 de los 2 GB de memoria \acrshort{DDR} \acrshort{RAM} al kernel de linux el mapa de memoria que al que puede acceder va desde la dirección 0x00000000 a la 0x3FFFFFFF. De este modo la dirección 0x40000000 está libre para el hipervisor.\\
+  En la cabecera también se indica cual es la \acrshort{UART} por la que imprimir los mensajes de debug de la \textit{root cell} indicando la dirección de memoria del periférico.
+  Otra información importante que aparece en la cabecera son las direcciones referentes al controlador de interrupciones que como se puede observar empieza en la dirección 0xF9010000 \cite{mpsoc_registers}. Jailhouse necesita conocer la ubicación del \acrshort{GIC} para configurarlo y ser capaz de virtualizar interrupciones y direccionarlas a la celda que corresponda.
+
+  \item Número de CPUs: en el parámetro \textit{cpus} se indica mediante flags los núcleos de los que dispone la celda.
+  \begin{lstlisting}[style=CStyle]
+  (...)
+  .cpus = {
+		0xf,
+	},
+  (...)
+  \end{lstlisting}
+  En el caso de la \textit{root cell} se puede ver que en principio los 4 núcleos Cortex-A53 del MPSoC están al servicio de la celda.
+
+  \item Zonas de memoria: En esta parte de la configuración de la celda se especifican las zona de memoria de las que tiene que ser consciente.
+  \begin{lstlisting}[style=CStyle]
+  (...)
+  .mem_regions = {
+		/* MMIO (permissive) */ {
+			.phys_start = 0xfd000000,
+			.virt_start = 0xfd000000,
+			.size =	      0x03000000,
+			.flags = JAILHOUSE_MEM_READ | JAILHOUSE_MEM_WRITE |
+				JAILHOUSE_MEM_IO,
+		},
+		/* RAM */ {
+			.phys_start = 0x0,
+			.virt_start = 0x0,
+			.size = 0x40000000,
+			.flags = JAILHOUSE_MEM_READ | JAILHOUSE_MEM_WRITE |
+				JAILHOUSE_MEM_EXECUTE,
+		},
+		/* RAM */ {
+			.phys_start = 0x42000000,
+			.virt_start = 0x42000000,
+			.size = 0x3e000000,
+			.flags = JAILHOUSE_MEM_READ | JAILHOUSE_MEM_WRITE |
+				JAILHOUSE_MEM_EXECUTE,
+		},
+		/* PL gpio switches */ {
+			.phys_start = 0xA0000000,
+			.virt_start = 0xA0000000,
+			.size = 0x00001000,
+			.flags = JAILHOUSE_MEM_READ | JAILHOUSE_MEM_WRITE |
+				JAILHOUSE_MEM_IO,
+		},
+		/* PL gpio leds */ {
+			.phys_start = 0xA0001000,
+			.virt_start = 0xA0001000,
+			.size = 0x00001000,
+			.flags = JAILHOUSE_MEM_READ | JAILHOUSE_MEM_WRITE |
+				JAILHOUSE_MEM_IO,
+		},
+  (...)
+  \end{lstlisting}
+  Aparecen por ejemplo los periféricos de la zona de \acrshort{PL} que están mapeados en memoria al estar conectados mediante el bus \acrshort{AXI}. También las zonas de \acrshort{RAM} que no están ocupadas por el hipervisor.
+
+  \item Interrupciones: en el campo \textit{irqchips} se definen las interrupciones que va manejar la celda en cuestion.
+  \begin{lstlisting}[style=CStyle]
+  (...)
+  .irqchips = {
+		/* GIC */ {
+			.address = 0xf9010000,
+			.pin_base = 32,
+			.pin_bitmap = {
+				0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			},
+		},
+	},
+  (...)
+  \end{lstlisting}
+  Más concretamente en el campo \textit{pin\_bitmap} aparecen cuales de las 128 fuentes de interrupción que se pueden manejar.
+
+\end{itemize}
+
+\subsubsection{Celda baremetal}
+
+La celda \textit{inmate} que aloja a la aplicación baremetal es relativamente sencilla debido a que lo único que se necesita especificar el núcleo o núcleos en los que va a desplegarse, las zonas de memoria que se van a asignar y las interrupciones que se van a manejar. A grandes rasgos estas tres definiciones aparecen de la siguiente forma en el fichero \textit{ultrazed\_ehu\_irq.c}:
+
+\begin{lstlisting}[style=CStyle]
+(...)
+.cell = {
+		.signature = JAILHOUSE_CELL_DESC_SIGNATURE,
+		.revision = JAILHOUSE_CONFIG_REVISION,
+		.name = "gpio-leds-demo",
+		.flags = JAILHOUSE_CELL_PASSIVE_COMMREG,
+
+		.cpu_set_size = sizeof(config.cpus),
+		.num_memory_regions = ARRAY_SIZE(config.mem_regions),
+		.num_irqchips = ARRAY_SIZE(config.irqchips),
+		.pio_bitmap_size = 0,
+		.num_pci_devices = 0,
+
+		.console = {
+			.address = 0xff010000,
+			.type = JAILHOUSE_CON_TYPE_XUARTPS,
+			.flags = JAILHOUSE_CON_ACCESS_MMIO |
+				 JAILHOUSE_CON_REGDIST_4,
+		},
+	},
+(...)
+.cpus = {
+		0x8,
+	},
+(...)
+/* UART */ {
+    .phys_start = 0xff010000,
+    .virt_start = 0xff010000,
+    .size = 0x1000,
+    .flags = JAILHOUSE_MEM_READ | JAILHOUSE_MEM_WRITE |
+      JAILHOUSE_MEM_IO | JAILHOUSE_MEM_ROOTSHARED,
+  },
+/* GPIO_SWITCHES */ {
+    .phys_start = 0xA0000000,
+    .virt_start = 0xA0000000,
+    .size = 0x00001000,
+    .flags = JAILHOUSE_MEM_READ | JAILHOUSE_MEM_WRITE |
+      JAILHOUSE_MEM_IO | JAILHOUSE_MEM_ROOTSHARED,
+  },
+  /* GPIO_LEDS */ {
+    .phys_start = 0xA0001000,
+    .virt_start = 0xA0001000,
+    .size = 0x00001000,
+    .flags = JAILHOUSE_MEM_READ | JAILHOUSE_MEM_WRITE |
+      JAILHOUSE_MEM_IO | JAILHOUSE_MEM_ROOTSHARED,
+  },
+(...)
+.irqchips = {
+		/* GIC */ {
+			.address = 0xf9010000,
+			.pin_base = 32,
+			.pin_bitmap = {
+				1 << (54 - 32),
+				0,
+				0,
+				1 << (136 - 128)
+			},
+		},
+	}
+(...)
+\end{lstlisting}
+
+\subsection{Test Linux + baremetal}
 
 \section{Xen}
 \subsection{Dom0 - Linux}
 
 \subsection{DomU - Baremetal}
-
-\section{Jailhouse}
-\subsection{Celda Linux}
-
-\subsection{Celda baremetal}

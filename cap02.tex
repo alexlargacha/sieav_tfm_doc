@@ -21,7 +21,7 @@ Este hipervisor tiene como uno de sus objetivos principales la seguridad \cite{o
 
 
 \section{WindRiver Hypervisor}
-El hipervisor de WindRiver es también un hipervisor de tipo 1 que particiona el software que se ejecuta en uno o varios núcleos en múltiples tarjetas virtuales (Virtual Boards) con diferentes niveles de protección ya características. Está optimizado para ejecutar sistemas opetativos guest de propósito general (GPOS), sistema de tiempo real y sistemas operativos para aplicaciones críticas de seguridad \cite{windriver_1}.
+El hipervisor de WindRiver es también un hipervisor de tipo 1 que particiona el software que se ejecuta en uno o varios núcleos en múltiples tarjetas virtuales (Virtual Boards) con diferentes niveles de protección ya características. Está optimizado para ejecutar sistemas opetativos guest de propósito general (\acrshort{GPOS}), sistema de tiempo real y sistemas operativos para aplicaciones críticas de seguridad \cite{windriver_1}.
 \subsection{Virtual Boards}
 La división del sistema propuesta por WindRiver se basa en tarjetas virtuales o particiones. Cada una de ellas puede contener un sistema operativo guest con sus diferentes aplicaciones ejecutandose o un programa si sistema operativo, lo que se denomina \textit{virtual board application}. El hipervisor es el encargado de controlar en qué núcleos se están ejecutando las virtual boards y las zonas de memoria a las que puede acceder. Una virtual board puede compartir un núcleo con con otra virtual board, tener un núcleo dedicado, o utilizar varios al mismo tiempo.
 \begin{figure*}[h]
@@ -153,7 +153,7 @@ Las extensiones de virtualización de ARM resultan muy adecuadas para la arquite
 \begin{itemize}
   \item Xen se ejecuta por completo en el nivel de excepcion de hipervisor.  Xen deja el EL1 para el modo kernel del sistema operativo de la máquina virtual y el EL0 para para las aplicaciones de usuario. Los hipervisores de tipo 2 sufren con el constante cambio entre modo hipervisor y modo kernel. Al ejecutarse completamente en EL2, Xen permite reducir el número de cambios de contexto necesarios.
   \item La inclusión de la intrucción HVC, permite al kernel invocar \textit{hypercalls} hacia Xen.
-  \item Xen utiliza 2 fases en la MMU para asignar memoria a las máquinas virtuales.
+  \item Xen utiliza 2 fases en la \acrshort{MMU} para asignar memoria a las máquinas virtuales.
   \item Se emplean timers genéricos tanto para recivir interrupciones de tiempo como para inyectarlas en las máquinas virtuales.
   \item Xen configura en GIC las interrupciones necesarias tanto para su funcionamiento como para inyectar interrupciones en los sistemas guest.
 \end{itemize}

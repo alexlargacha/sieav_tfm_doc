@@ -4,7 +4,7 @@
 A la hora de seleccionar la plataforma para desarrollar las pruebas sobre los hipervisores Xen y Jailhouse se han barajado diferentes alternativas. Los criterios que se han tenido en cuenta para la selección han sido principalmente dos:
 \begin{itemize}
   \item Plataformas soportadas: cada uno de los dos hipervisores mantiene una lista de plataformas en las que se ha probado alguna vez. Xen tiene un amplio recorrido en el mundo de los hipervisores y la lista de tarjetas electrónicas en las que se ha probado es muy grande. En el caso de Jailhouse, debido a que su trayectoria es más corta, esa lista de tarjetas soportadas se reduce enórmemente \cite{jailhouse_github}. La tarjeta seleccionada debía estar en las dos listas.
-  \item Herramientas para generar máquinas virtuales: con el objeto de evaluar un sistema virtualizado con ambos hipervisores, se va a necesitar generar tanto un dominio o celda Linux con su kernel, device-tree y sistema de ficheros y un sistema baremetal. La selección de la tarjeta electrónica, o más bien la arquitectura del microprocesaro que incluya, marca también en gran medida las herramientas (compilador, BSP, etc.) para generar el software necesario. Cabe destacar que se le ha dado importancia al hecho de poder disponer de todo el código fuente que se vaya a utilizar para poder controlarlo, entenderlo y adaptarlo si fuera necesario.
+  \item Herramientas para generar máquinas virtuales: con el objeto de evaluar un sistema virtualizado con ambos hipervisores, se va a necesitar generar tanto un dominio o celda Linux con su kernel, \textit{device-tree} y sistema de ficheros y un sistema baremetal. La selección de la tarjeta electrónica, o más bien la arquitectura del microprocesaro que incluya, marca también en gran medida las herramientas (compilador, BSP, etc.) para generar el software necesario. Cabe destacar que se le ha dado importancia al hecho de poder disponer de todo el código fuente que se vaya a utilizar para poder controlarlo, entenderlo y adaptarlo si fuera necesario.
 \end{itemize}
 
 Una de las arquitecturas más populares en los últimos tiempos en los sitemas embebidos es la arquitectura ARM. Es ubicua y en los ultimos años ha irrumpido con mucha fuerza. La famosa tarjeta de la frambuesa desde su inicio ha incluído un procesador ARM, lo que le ha dado más popularidad si cabe, y también Xilinx desde la familia Zynq\textregistered-7000 en su PS.\\
@@ -14,7 +14,7 @@ En el momento de iniciar el trabajo fin de máster no se disponía de la tarjeta
 
 \section{Plataforma electrónica}
 \subsection{Ultrazed\texttrademark}
-La tarjeta electrónica que se ha utilizado se compone de dos partes: UltraZed-EG\texttrademark SOM y UltraZed\texttrademark IO Carrier Card con las siguientes características técnicas:
+La tarjeta electrónica que se ha utilizado se compone de dos partes: UltraZed-EG\texttrademark \acrshort{SOM} y UltraZed\texttrademark IO Carrier Card con las siguientes características técnicas:
 \begin{itemize}
   \item Procesador UltraScale+\texttrademark MPSoC XZU3EG-1SFVA625E que inluye:
   \begin{itemize}
@@ -75,7 +75,7 @@ El bloque \acrshort{AXI} \acrshort{GPIO} con nombre \textit{axi\_gpio\_1} tiene 
 
 También se ha utilizado uno de los conectores PMOD para poder monitorizar las señales en curso con un analizador lógico a fin de poder comprobar que los resultados obtenidos de la resta de tiempos en el Timer son coherentes.\\
 
-En la configuración de la zona de PS se han utilizado las definiciones de tarjeta que están alojadas en \url{https://github.com/Avnet/bdf}. Estas definiciones configuran el MPSoc para el SOM de UltraZed\texttrademark que se está empleando.
+En la configuración de la zona de PS se han utilizado las definiciones de tarjeta que están alojadas en \url{https://github.com/Avnet/bdf}. Estas definiciones configuran el MPSoc para el \acrshort{SOM} de UltraZed\texttrademark que se está empleando.
 
 \subsection{Otros}
 
@@ -101,3 +101,5 @@ A continuación se listan las herramientas software que se han empleado en la el
   Desde las últimas versiones su sistema de compilación y generación de software está basado en el proyecto yocto (\url{https://www.yoctoproject.org/}). Xilinx añade una capa software sobre yocto para manejar las particularizaciones de sus productos.\\
   \url{https://www.xilinx.com/products/design-tools/embedded-software/petalinux-sdk.html}
 \end{itemize}
+
+Todas estas herramientas software así como los procesos de configuración, compilación, interacciones con la tarjeta electrónica, etc. se han realizado en una máquina host Linux con sistema operativo Ubuntu 16.04 LTS.
