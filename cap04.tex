@@ -1,17 +1,17 @@
 \chapter{Jailhouse y Xen en UltraZed}
 
 \section{Jailhouse}
-Como se ha expuesto anteriormente, la denominación de Jailhouse es la de un \textit{hipervisor de particionamiento basado en Linux} \cite{jailhouse_github}. Es capaz de ejecutar programas baremetal junto con sistemas operativos guest y siempre partiendo desde Linux. Con este proposito, empleando las extensiones de virtualización del microprocesador en cuestión, configura una serie de celdas que no pueden interferirse entre ellas.\\
+Como se ha expuesto anteriormente, la denominación de Jailhouse es la de un \textit{hipervisor de particionamiento basado en Linux} \cite{jailhouse_github}. Es capaz de ejecutar programas baremetal junto con sistemas operativos guest y siempre partiendo desde Linux. Con este propósito, empleando las extensiones de virtualización del microprocesador en cuestión, configura una serie de celdas que no pueden interferirse entre ellas.\\
 Una vez que Jailhouse está activado, toma el control absoluto del harwdare que tiene debajo. Necesita de un sitema operativo Linux que lo cargue y sus herramientas de control de celdas están basadas también en Linux.
 
 \subsection{Compilación de Jailhouse}
 El código fuente del proyecto Jailhouse está alojado en \cite{jailhouse_github}. En el momento de la elaboración del presente documento la versión en curso es la 0.11.\\
-Desde el punto de vista de Linux Jailhouse es in módulo del kernel (extensión .ko). En el momento que se carga el módulo, Jailhouse inserta el firmware del propio hipervisor en una zona de memoria reservada en arranque y crea el dispositivo \textit{/dev/jailhouse} en el sistema. Este dispositivo es el que utilizan las herramientas de gestion de Jailhouse que se ejecutan desde Linux para interactuar con el hipervisor y crear, arrancar, parar y destruir los sitemas guest o celdas.\\
+Desde el punto de vista de Linux, Jailhouse es un módulo del kernel (extensión .ko). En el momento que se carga el módulo, Jailhouse inserta el firmware del propio hipervisor en una zona de memoria reservada en arranque y crea el dispositivo \textit{/dev/jailhouse} en el sistema. Este dispositivo es el que utilizan las herramientas de gestión de Jailhouse que se ejecutan desde Linux para interactuar con el hipervisor y crear, arrancar, parar y destruir los sistemas guest o celdas.\\
 
-El proceso de creación del propio módulo de Jailhouse necesita de una serie de herramientas de compilación cruzada para la arquitectura de la plataforma que se está utilizando y también necesita el código fuente del kernel de Linux en el que se va a instalar como módulo.\\
+El proceso de creación del propio módulo de Jailhouse necesita una serie de herramientas de compilación cruzada para la arquitectura de la plataforma que se está utilizando y también necesita el código fuente del kernel de Linux en el que se va a instalar como módulo.\\
 En el anexo \ref{petalinux} se detalla el proceso de configuración y generación de un proyecto PetaLinux basado en la plataforma anteriormente descrita. Petalinux proporciona el compilador, linker, etc. necesarios a la hora de generar software para la arquitectura ARMv8 y el proceso de construcción del proyecto requiere del código fuente del kernel a fin de generar la imagen que de ejecutará en la tajeta Ultrazed\texttrademark.\\
 
-Con todos estos elementos en su sitio, lo único que hay que hacer para compilar Jailhouse para la arquitectura destino y el kernel de Linux generado con PetaLinux es ejecutar los siguientes commando el la \textit{shell}
+Con todos estos elementos, lo único que hay que hacer para compilar Jailhouse para la arquitectura destino y el kernel de Linux generado con PetaLinux es ejecutar los siguientes commandos el la \textit{shell}
 
 \begin{lstlisting}[style=CStyle]
   $ git clone git@github.com:siemens/jailhouse.git
@@ -57,7 +57,7 @@ alex@xubuntu16:~/workspace/ehu-upv/jailhouse/configs$ ls -la arm64/ultra96*
 \end{lstlisting}
 
 Al compilar Jailhouse se genera un fichero con extensión \textit{.cell} por cada \textit{.c}. Los ficheros \textit{.cell} son los que utiliza la herramienta de gestión de sistemas guest desde la celda Linux.\\
-En el momento de elaborar el presente TFM la tarjeta UltraZed\texttrademark no estaba entre la lista de plataformas soportadas y probadas de Jailhouse por lo que no existía ningún fichero de celda para la misma. Como ya se ha comentado anteriormente, al incluir in chip de la misma familia que la tarjeta Xilinx ZCU102 y la Ultra96, se consideró que la adaptación no sería demasiado complicada por lo que se han creado los ficheros correspondientes a la \textit{root cell} y a la celda con la aplicación baremetal de la forma que se describe en los siguientes apartados.
+En el momento de elaborar el presente TFM la tarjeta UltraZed\texttrademark no estaba entre la lista de plataformas soportadas y probadas de Jailhouse por lo que no existía ningún fichero de celda para la misma. Como ya se ha comentado anteriormente, al incluir un chip de la misma familia que la tarjeta Xilinx ZCU102 y la Ultra96, se consideró que la adaptación sería posible por lo que se han creado los ficheros correspondientes a la \textit{root cell} y a la celda con la aplicación baremetal de la forma que se describe en los siguientes apartados.
 
 \subsubsection{Celda Linux}
 
@@ -128,7 +128,7 @@ La estructura principal que define el sistema tiene los siguientes campos:
 		stdout-path = "serial0:115200n8";
 	       };
   \end{lstlisting}
-  Al proporcionar 1 de los 2 GB de memoria \acrshort{DDR} \acrshort{RAM} al kernel de linux el mapa de memoria que al que puede acceder va desde la dirección 0x00000000 a la 0x3FFFFFFF. De este modo la dirección 0x40000000 está libre para el hipervisor.\\
+  Al proporcionar 1 de los 2 GB de memoria \acrshort{DDR} \acrshort{RAM} al kernel de linux el mapa de memoria al que puede acceder va desde la dirección 0x00000000 a la 0x3FFFFFFF. De este modo la dirección 0x40000000 está libre para el hipervisor.\\
   En la cabecera también se indica cual es la \acrshort{UART} por la que imprimir los mensajes de debug de la \textit{root cell} indicando la dirección de memoria del periférico.
   Otra información importante que aparece en la cabecera son las direcciones referentes al controlador de interrupciones que como se puede observar empieza en la dirección 0xF9010000 \cite{mpsoc_registers}. Jailhouse necesita conocer la ubicación del \acrshort{GIC} para configurarlo y ser capaz de virtualizar interrupciones y direccionarlas a la celda que corresponda.
 
@@ -204,8 +204,7 @@ La estructura principal que define el sistema tiene los siguientes campos:
 \end{itemize}
 
 \subsubsection{Celda baremetal}
-
-La celda \textit{inmate} que aloja a la aplicación baremetal es relativamente sencilla debido a que lo único que se necesita especificar es el núcleo o núcleos en los que va a desplegarse, las zonas de memoria que se van a asignar y las interrupciones que se van a manejar. A grandes rasgos estas tres definiciones aparecen de la siguiente forma en el fichero \textit{ultrazed\_ehu\_irq.c}:
+Lo único que se necesita definir en la celda \textit{inmate} que aloja la aplicación baremetal es el núcleo o núcleos en los que va a desplegarse, las zonas de memoria que se van a asignar y las interrupciones que se van a manejar. A grandes rasgos estas tres definiciones aparecen de la siguiente forma en el fichero \textit{ultrazed\_ehu\_irq.c}:
 
 \begin{lstlisting}[style=CStyle]
 (...)
@@ -270,14 +269,14 @@ La celda \textit{inmate} que aloja a la aplicación baremetal es relativamente s
 (...)
 \end{lstlisting}
 
-De estas secciones, cabe destacar la parte en la que se le asignan a la celda solo las regiones de memoria correspondientes a los periféricos de \acrshort{PL} y a la \acrshort{UART} que va a manejar el programa.\\
+De estas secciones, cabe destacar la parte en la que se le asignan a la celda solo las regiones de memoria correspondientes a los periféricos de \acrshort{PL} y \acrshort{UART} que va a manejar el programa.\\
 En cuanto a las interrupciones, en el campo \textit{pin\_bitmap} dentro de \textit{irqchips} solo se activan los flags correspondientes a las interupciones número 54 y 136, \acrshort{UART} 1 y \acrshort{PL}-\acrshort{PS} Grupo 1 interrupción 0 respectivamente \cite{mpsoc_registers}.
 
 \textbf{Aplicación baremetal}
 
-Jailhouse proporciona una serie de funciones genéricas de configuración del sistema para poder ser utilizadas por las celdas \textit{inmates} en el directorio \textit{inmates/lib}. Aquí se encuentran por ejemplo la API para configurar el \acrshort{GIC}, Timer o \acrshort{UART}. Tomando como referencia el ejemplo existente para el manejo de la interrupción del timer privado de ARM (número 27) se ha desarrollado la aplicación que en respuesta al la interupción 136 producida por un cambio en los valores del switch conectado a \acrshort{PL} descrito en la sección \ref{vivado_config}.
+Jailhouse proporciona una serie de funciones genéricas de configuración del sistema para poder ser utilizadas por las celdas \textit{inmates} en el directorio \textit{inmates/lib}. Aquí se encuentran por ejemplo la API para configurar el \acrshort{GIC}, Timer o \acrshort{UART}. Tomando como referencia el ejemplo existente para el manejo de la interrupción del timer privado de ARM (número 27) se ha desarrollado la aplicación que responde a la interupción 136 producida por un cambio en los valores del switch conectado a \acrshort{PL} descrito en la sección \ref{vivado_config}.
 
-El código resultante queda tan simple como el que se muestra a continuación:
+El código resultante queda como se muestra a continuación:
 \begin{lstlisting}[style=CStyle]
 #include <inmate.h>
 #include <gic.h>
