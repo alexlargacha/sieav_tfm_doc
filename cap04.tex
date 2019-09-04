@@ -2,7 +2,7 @@
 
 \section{Jailhouse}
 Como se ha expuesto anteriormente, la denominación de Jailhouse es la de un \textit{hipervisor de particionamiento basado en Linux} \cite{jailhouse_github}. Es capaz de ejecutar programas baremetal junto con sistemas operativos guest y siempre partiendo desde Linux. Con este propósito, empleando las extensiones de virtualización del microprocesador en cuestión, configura una serie de celdas que no pueden interferirse entre ellas.\\
-Una vez que Jailhouse está activado, toma el control absoluto del harwdare que tiene debajo. Necesita de un sitema operativo Linux que lo cargue y sus herramientas de control de celdas están basadas también en Linux.
+Una vez que Jailhouse está activado, toma el control absoluto del harwdare que tiene debajo. Necesita de un sistema operativo Linux que lo cargue y sus herramientas de control de celdas están basadas también en Linux.
 
 \subsection{Compilación de Jailhouse}
 El código fuente del proyecto Jailhouse está alojado en \cite{jailhouse_github}. En el momento de la elaboración del presente documento la versión en curso es la 0.11.\\
@@ -199,7 +199,7 @@ La estructura principal que define el sistema tiene los siguientes campos:
 	},
   (...)
   \end{lstlisting}
-  Más concretamente en el campo \textit{pin\_bitmap} aparecen cuales de las 128 fuentes de interrupción que se pueden manejar.
+  Más concretamente en el campo \textit{pin\_bitmap} aparecen cuáles de las 128 fuentes de interrupción que se pueden manejar.
 
 \end{itemize}
 
@@ -275,7 +275,7 @@ En el campo \textit{cpus} aparece el valor 0x8 (1000b) lo que indica que esta ce
 
 \subsubsection{Aplicación baremetal} \label{app_baremetal}
 
-Jailhouse proporciona una serie de funciones genéricas de configuración del sistema para poder ser utilizadas por las celdas \textit{inmates} en el directorio \textit{inmates/lib}. Aquí se encuentran por ejemplo la API para configurar el \acrshort{GIC}, Timer o \acrshort{UART}. Tomando como referencia el ejemplo existente para el manejo de la interrupción del timer privado de ARM (número 27) se ha desarrollado la aplicación que responde a la interupción 136 producida por un cambio en los valores del switch conectado a \acrshort{PL} descrito en la sección \ref{vivado_config}.
+Jailhouse proporciona una serie de funciones genéricas de configuración del sistema para poder ser utilizadas por las celdas \textit{inmates} en el directorio \textit{inmates/lib}. Aquí se encuentran por ejemplo la API para configurar el \acrshort{GIC}, Timer o \acrshort{UART}. Tomando como referencia el ejemplo existente para el manejo de la interrupción del temporizador privado de ARM (número 27) se ha desarrollado la aplicación que responde a la interupción 136 producida por un cambio en los valores del switch conectado a \acrshort{PL} descrito en la sección \ref{vivado_config}.
 
 El código resultante se encuentra en el fichero queda como se muestra a continuación:
 \begin{lstlisting}[style=CStyle]
