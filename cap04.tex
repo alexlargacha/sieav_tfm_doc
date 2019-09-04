@@ -270,13 +270,14 @@ Lo único que se necesita definir en la celda \textit{inmate} que aloja la aplic
 \end{lstlisting}
 
 De estas secciones, cabe destacar la parte en la que se le asignan a la celda solo las regiones de memoria correspondientes a los periféricos de \acrshort{PL} y \acrshort{UART} que va a manejar el programa.\\
-En cuanto a las interrupciones, en el campo \textit{pin\_bitmap} dentro de \textit{irqchips} solo se activan los flags correspondientes a las interupciones número 54 y 136, \acrshort{UART} 1 y \acrshort{PL}-\acrshort{PS} Grupo 1 interrupción 0 respectivamente \cite{mpsoc_registers}.
+En cuanto a las interrupciones, en el campo \textit{pin\_bitmap} dentro de \textit{irqchips} solo se activan los flags correspondientes a las interupciones número 54 y 136, \acrshort{UART} 1 y \acrshort{PL}-\acrshort{PS} Grupo 1 interrupción 0 respectivamente \cite{mpsoc_registers}.\\
+En el campo \textit{cpus} aparece el valor 0x8 (1000b) lo que indica que esta celda va a tener asignado el núcleo con identificador 3 (los identificador van de 0 a 3 para los 4 núcleos Cortex-A53).
 
-\textbf{Aplicación baremetal}
+\subsubsection{Aplicación baremetal} \label{app_baremetal}
 
 Jailhouse proporciona una serie de funciones genéricas de configuración del sistema para poder ser utilizadas por las celdas \textit{inmates} en el directorio \textit{inmates/lib}. Aquí se encuentran por ejemplo la API para configurar el \acrshort{GIC}, Timer o \acrshort{UART}. Tomando como referencia el ejemplo existente para el manejo de la interrupción del timer privado de ARM (número 27) se ha desarrollado la aplicación que responde a la interupción 136 producida por un cambio en los valores del switch conectado a \acrshort{PL} descrito en la sección \ref{vivado_config}.
 
-El código resultante queda como se muestra a continuación:
+El código resultante se encuentra en el fichero queda como se muestra a continuación:
 \begin{lstlisting}[style=CStyle]
 #include <inmate.h>
 #include <gic.h>
@@ -322,7 +323,84 @@ void inmate_main(void)
 
 \subsection{Test Linux + baremetal}
 
-\section{Xen}
-\subsection{Dom0 - Linux}
+La tarjeta electrónica se va a arrancar con los artefactos generados en el proyecto de PetaLinux y descritos en el anexo \ref{petalinux}. En el caso de Jailhouse se requiere de una modificación extra en el \textit{device-tree} para deshabilitar en la celda Linux los dispositivos cuyo manejo corresponde a la celda con la aplicación baremetal. Como se ha descrito en la sección \ref{jailhouse_sota}, el hipervisor Jailhouse no permite que un periférico se utilice en más de una celda. Por defecto en el fichero \textit{pl.dtsi} que genera automáticamente PetaLinux basándose en el diseño implementado en \acrshort{PL} se crean los nodos de esos dispositivos para ser manejados desde Linux. En este caso no interesa que Linux maneje esos recursos por lo que se deshabilitan en el fichero \textit{system-user.dtsi} de la siguiente forma:
+\begin{lstlisting}[style=CStyle]
+&axi_gpio_0 {
+  status = "disabled";
+};
+&axi_gpio_1 {
+  status = "disabled";
+};
+&axi_gpio_3 {
+  status = "disabled";
+};
+&axi_timer_0 {
+  status = "disabled";
+};
+\end{lstlisting}
 
-\subsection{DomU - Baremetal}
+El primer paso para probar la respuesta de la aplicación baremetal descrita en la sección \ref{app_baremetal} es copiar en la plataforma destino los ficheros compilados de las definiones de celdas y el binario de la aplicación. En el caso de las celdas creadas para la tarjeta UltraZed\texttrademark son: \textit{ultrazed\_ehu.cell}, \textit{ultrazed\_ehu\_irq.cell} y \textit{irq\_demo.bin}.
+
+\begin{lstlisting}[style=CStyle]
+root@ultrazed_hyp_1:~# jailhouse enable ultrazed_ehu.cell
+
+Initializing Jailhouse hypervisor v0.10 (106-g45d8346-dirty) on CPU 2
+Code location: 0x0000ffffc0200800
+Page pool usage after early setup: mem 45/4067, remap 0/131072
+Initializing processors:
+ CPU 2... OK
+ CPU 1... OK
+ CPU 3... OK
+ CPU 0... OK
+Initializing unit: irqchip
+Initializing unit: PCI
+Page pool usage after late setup: mem 65/4067, remap 5/131072
+Activating hypervisor
+[  496.674646] The Jailhouse is opening.
+\end{lstlisting}
+
+El commando \textit{jailhouse enbale} lo que hace es configurar la \textit{root cell} con la definición del fichero \textit{ultrazed\_ehu.cell}. En este momento lo que ocurre es que se carga el \textit{firmware} de Jailhouse en la dirección especificada para el hipervisor y a continuación crea una celda para alojar el sistema Linux que hasta ahora estaba ejecutándose de manera nativa. Esta \textit{root cell} a partir de este momento ya se ejecuta como un sistema guest. A partir de este momento la gestión de las celdas se realiza con la aplicación que se ejecuta en espacio de usuario de la \textit{root cell}. Esta herramienta se comunica con el hipervisor a través de commandos \textit{ioctl()} hacia el dispositivo \textit{/dev/jailhouse} que se ha creado al insertar el módulo \textit{jailhouse.ko}.
+Como se puede observar en un principio los 4 núcleos están destinados a la \textit{root cell} y se configuran las zonas de memoria y las interrupciones.\\
+
+En el siguiente comando se crea la celda para alojar la aplicación baremetal:
+
+\begin{lstlisting}[style=CStyle]
+root@ultrazed_hyp_1:~# jailhouse cell create ultrazed_ehu_irq.cell
+[  506.076718] CPU3: shutdown
+[  506.079422] psci: CPU3 killed.
+Created cell "gpio-irq-demo"
+Page pool usage after cell creation: mem 80/4067, remap 5/131072
+[  506.091124] Created Jailhouse cell "gpio-irq-demo"
+\end{lstlisting}
+
+Al haber asignado el núcleo con identificador 3 a la celda, Jailhouse lo que hace es quitarle ese recurso a la celda Linux que era la que lo mantenía hasta el momento. A su vez el hipervisor asigna las zonas de memoria e interrupciones definidas para la celda guest haciendo que desde ese momento no estén disponibles para ninguna celda más.\\
+
+Con el objetivo de cargar en memoria asignada a la celda la propia aplicación, se ejecuat el siguiente comando.
+\begin{lstlisting}[style=CStyle]
+root@ultrazed_hyp_1:~# jailhouse cell load 1 irqbutton_demo.bin
+Cell "gpio-irq-demo" can be loaded
+\end{lstlisting}
+
+El último de los comandos es el que lanza la ejecución del la aplicación baremetal:
+\begin{lstlisting}[style=CStyle]
+root@ultrazed_hyp_1:~# jailhouse cell start 1
+Started cell "gpio-irq-demo"
+\end{lstlisting}
+
+Este proceso es el que aparece representado a nivel de bloques en la figura \ref{fig:jail_2}.\\
+
+En el caso de la aplicación desarrollada, .............. UART1 (bla bla) ........
+
+\section{Xen}
+
+Xen es el hipervisor que Xilinx tiene integrado en su herramientas de desarrollo y para el que da soporte. Al igual que Jailhouse, Xen también es un hipervisor de tipo 1 que una vez arrancado toma el control del hardware. Requiere de un dominio llamado Dom0 con privilegios especiales que tiene la capacidad de acceder al hardware, manejar operaciones de entra y salida e interactuar con los demás dominios. También expone una interfaz de control con la que gestionar la creación, eliminación, inicio y parada de sistemas guest.
+
+
+\subsection{Compilación de Xen}
+
+\subsection{Configuración de celdas}
+\subsubsection{Celda Linux}
+\subsubsection{Celda baremetal}
+\subsubsection{Aplicación baremetal}
+
+\subsection{Test Linux + baremetal}
