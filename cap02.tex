@@ -1,14 +1,14 @@
 \chapter{Estado del arte}
-En esta sección se van a presentar algunos de los hipervisores más populares utilizados en sistemas embebidos y sus características principales, poniendo más énfasis en los casos de Xen y Jailhouse ya que se tratan de los hipervisores que se han utilizado para el desarrolo del actual TFM. Estos dos últimos resultan de mayor interés debido a que son de código abierto, por lo que aparte de la documentación oficial, a veces un poco escasa en los proyectos de código abierto, exiten repositorios públicos con el código fuente. De esta forma se puede analizar de mejor manera su estructura e incluso modificar partes de su código para adaptarlo a las necesidades del sistema.
+En esta sección se van a presentar algunos de los hipervisores más populares utilizados en sistemas embebidos y sus características principales, poniendo más énfasis en los casos de Xen y Jailhouse ya que se tratan de los hipervisores que se han utilizado para obtener los resultados del actual TFM. Estos dos últimos resultan de mayor interés debido a que son de código abierto, por lo que aparte de la documentación oficial, a veces un poco escasa en los proyectos de código abierto, exiten repositorios públicos con el código fuente. De esta forma se puede analizar de mejor manera su estructura e incluso modificar partes de su código para adaptarlo a las necesidades del sistema.
 
 \section{OKL4 Hypervisor}
 OKL4 Hypervisor es un hipervisor de tipo 1 de los basados en micro-kernel. Fue desarrollado originalmente por OK Labs, la cual forma parte del conglomerado General Dynamics, aprovechando la experiencia en micro-kernels que habían desarrollado gracias al éxito comercial de otro de los productos de OK Labs, el micro-kernel seL4 \cite{seL4}. En su visión, no existían razones para no poder combinar en una única implementación un micro-kernel y un hipervisor. De echo, durante mucho tiempo, el OKL4 se denominó \textit{OKL4 Microvisor}.\\
-El objetivo es dar soporte para la virtualización con la mínima sobrecarga del sistema. De esa forma, el modelo propuesto se basa en los siguientes principios \cite{okl4}:
+El objetivo es asistir a la virtualización con la mínima sobrecarga del sistema. De esa forma, el modelo propuesto se basa en los siguientes principios \cite{okl4}:
 \begin{itemize}
-  \item La abstracción de ejecución que presenta el hipervisor a los sistemas operativos guest consta de una o varias CPUs virtuales (\acrshort{vCPU}), en las que poder desplegar las tareas requeridas por las aplicaciones de usuario.
+  \item La abstracción del sistema que el hipervisor presenta a los sistemas operativos guest consta de una o varias CPUs virtuales (\acrshort{vCPU}), en las que poder desplegar las tareas requeridas por las aplicaciones de usuario.
   \item En el apartado de virtualización de memoria, el hipervisor proporcioa una MMU virtual (\acrshort{vMMU}) con la que se mapea la memoria virtual de los sistemas guest en memoria física del sistema host.
   \item La virtualización de los periféricos, se basa en el mapeo en memoria de registro de dispositivos virtuales y un sistema de interrupciones virtuales (\acrshort{vIRQ}).
-  \item La comunicacion entre sistemas guest, se muestra como \acrshort{vIRQ}s (para sincronización) y canales. Los canales se implementan con FIFOs bidireccionales con una tamaño fijo especificado en el espacio de usuario.
+  \item La comunicacion entre sistemas guest se muestra como \acrshort{vIRQ}s (para sincronización) y canales. Los canales consisten en FIFOs bidireccionales con un tamaño fijo especificado en el espacio de usuario.
 \end{itemize}
 \begin{figure*}[!htb]
 	\centering
@@ -16,14 +16,14 @@ El objetivo es dar soporte para la virtualización con la mínima sobrecarga del
 	\caption{Ejemplo de arquitectura basada en OKL4 Hypervisor}
 	\label{fig:OK_L4_Microvisor}
 \end{figure*}
-OKL4 Hypervisor proporciona además de soporte de sistemas operativos guest como Linux, VxWorks y Android, un entorno denominado \textit{Lightweight Execution Environments}, que viene a ser un entorno que ofrece rendimentos cercanos a aplicaciones baremetal.\\
-Este hipervisor tiene como uno de sus objetivos principales la seguridad \cite{okl4_2} y se hace mucho énfasis en la confiabilidad que proporciona su sitema frente a ataques externos debido al aislamiento proporcionado entre celdas. También destaca su manejo de los recursos para tener la mínima huella de consumo de energía, haciéndolo apto para sistemas que funcionan con batería.
+OKL4 Hypervisor proporciona además de servicio a sistemas operativos guest como Linux, VxWorks y Android, un entorno denominado \textit{Lightweight Execution Environments}, que viene a ser un entorno que ofrece rendimentos cercanos a aplicaciones baremetal.\\
+Este hipervisor tiene como uno de sus objetivos principales la seguridad \cite{okl4_2} y se hace mucho énfasis en la confiabilidad que proporciona su sistema frente a ataques externos debido al aislamiento proporcionado entre celdas. También destaca su manejo de los recursos a fin de consumir la mínima de energía, haciéndolo apto para sistemas que funcionan con batería.
 
 
 \section{WindRiver Hypervisor}
-El hipervisor de WindRiver es también un hipervisor de tipo 1 que particiona el software que se ejecuta en uno o varios núcleos en múltiples tarjetas virtuales (Virtual Boards) con diferentes niveles de protección ya características. Está optimizado para ejecutar sistemas opetativos guest de propósito general (\acrshort{GPOS}), sistema de tiempo real y sistemas operativos para aplicaciones críticas de seguridad \cite{windriver_1}.
+El hipervisor de WindRiver es también de tipo 1 que particiona el software que se ejecuta en uno o varios núcleos en múltiples tarjetas virtuales (Virtual Boards) con diferentes niveles de protección ya características. Está optimizado para ejecutar sistemas operativos guest de propósito general (\acrshort{GPOS}), sistemas de tiempo real y sistemas operativos para aplicaciones críticas de seguridad \cite{windriver_1}.
 \subsection{Virtual Boards}
-La división del sistema propuesta por WindRiver se basa en tarjetas virtuales o particiones. Cada una de ellas puede contener un sistema operativo guest con sus diferentes aplicaciones ejecutandose o un programa si sistema operativo, lo que se denomina \textit{virtual board application}. El hipervisor es el encargado de controlar en qué núcleos se están ejecutando las virtual boards y las zonas de memoria a las que puede acceder. Una virtual board puede compartir un núcleo con con otra virtual board, tener un núcleo dedicado, o utilizar varios al mismo tiempo.
+La división del sistema propuesta por WindRiver se basa en tarjetas virtuales o particiones. Cada una de ellas puede contener un sistema operativo guest con sus diferentes aplicaciones ejecutándose o un programa sin sistema operativo, lo que se denomina \textit{virtual board application}. El hipervisor es el encargado de controlar en qué núcleos se están ejecutando las virtual boards y las zonas de memoria a las que puede acceder. Una virtual board puede compartir un núcleo con otra virtual board, tener un núcleo dedicado, o utilizar varios al mismo tiempo.
 \begin{figure*}[h]
 	\centering
 	\includegraphics[width=0.75\textwidth]{recursos/windriver_hyp.png}
@@ -31,10 +31,10 @@ La división del sistema propuesta por WindRiver se basa en tarjetas virtuales o
 	\label{fig:windriver_hyp}
 \end{figure*}
 
-Las virtual boards pueden ser creadas, arrancadas, detenidas y relanzadas individualemnte. Esto porporciona la opción de escalar dinámicamente la aplicación en función de la demanda en cada momento.
+Las virtual boards pueden ser creadas, arrancadas, detenidas y relanzadas individualmente. Esto porporciona la opción de escalar dinámicamente la aplicación en función de la demanda en cada momento.
 
 \subsection{Sistemas operativos guest}
-El hipervisor de WindRiver es capaz de ejecutar sistemas operativos utilizando una mezcla de virtualización asistida por hardware y paravirtualización con el objetivo de proporcionar un rendimiento óptimo. Soporta sitemas operativos guest como VxWorks o WindRiver Linux, y proporciona una interfaz para que otros sitemas operativos puedan ejecutarse, incluyendo sistemas operativos de código abierto o propietarios.\\
+El hipervisor de WindRiver es capaz de ejecutar sistemas operativos utilizando una mezcla de virtualización asistida por hardware y paravirtualización con el objetivo de proporcionar un rendimiento óptimo. Admite sistemas operativos guest como VxWorks o WindRiver Linux, y proporciona una interfaz para que otros sitemas operativos puedan ejecutarse, incluyendo sistemas operativos de código abierto o licenciados.\\
 
 \paragraph{Sistemas operativos sin modificaciones} El hipervisor de WindRiver permite la ejecución de sistemas operativos sin modificaciones de código del tipo Red Hat Enterprise Linux o Microsoft Windows dentro de una virtual board en microprocesadores Intel con extensiones de virtualización.\\
 
@@ -154,7 +154,7 @@ Las extensiones de virtualización de ARM resultan muy adecuadas para la arquite
   \item Xen se ejecuta por completo en el nivel de excepcion de hipervisor.  Xen deja el EL1 para el modo kernel del sistema operativo de la máquina virtual y el EL0 para para las aplicaciones de usuario. Los hipervisores de tipo 2 sufren con el constante cambio entre modo hipervisor y modo kernel. Al ejecutarse completamente en EL2, Xen permite reducir el número de cambios de contexto necesarios.
   \item La inclusión de la intrucción HVC, permite al kernel invocar \textit{hypercalls} hacia Xen.
   \item Xen utiliza 2 fases en la \acrshort{MMU} para asignar memoria a las máquinas virtuales.
-  \item Se emplean timers genéricos tanto para recivir interrupciones de tiempo como para inyectarlas en las máquinas virtuales.
+  \item Se emplean timers genéricos tanto para recibir interrupciones de tiempo como para inyectarlas en las máquinas virtuales.
   \item Xen configura en GIC las interrupciones necesarias tanto para su funcionamiento como para inyectar interrupciones en los sistemas guest.
 \end{itemize}
 
