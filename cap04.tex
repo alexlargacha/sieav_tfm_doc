@@ -544,11 +544,11 @@ iomem = [ "0xff010,1", "0xA0000,1", "0xA0001,1" ]
 
 Como se observa en las primeras líneas, es necesario especificar el nombre del fichero binario que contiene la aplicación así como el tamaño del espacio de memoria que se le asigna para su ejecución. En este caso la aplicación ocupa unos pocos kilobytes, así que los 8 MB reservados son suficientes. En los siguientes parámetros se indica el número de CPUs virtuales (\textit{vcpu}) con las que se inicia el DomU y si se asigna específicamente alguno de los nucleos (\textit{cpu}). Este último parámetro es opcional. Al haber definido \textit{vpcu} y \textit{cpu}, ambos con valor 1, implica que se mapea específicamente la \textit{vcpu} con identificador 0 al núcleo con identificador 1. Estos parámetros admiten múltimples combinaciones que quedan fuera del alcance del presente trabajo.\\
 En cuanto a las interrupciones, al igual que en la celda \textit{inmate} de Jailhouse de la sección \ref{jailhouse:baremetal}, se le indica a Xen que las interrupciones con números 54 (\acrshort{UART}1) y 136 (\acrshort{PL} a \acrshort{PS} grupo 1) deben ser redirigidas a el DomU.\\
-Por último, en \textit{iomem}
+Por último, en \textit{iomem} se definen las zonas de memoria que va a manejar directamente el DomU. En este caso se trata de la propia \acrshort{UART}1, los bloques de \acrshort{GPIO} y el temporizador inlcuidos en \acrshort{PL}.
 
 \subsubsection{Aplicación baremetal}
 
-Mediante el entorno de desarrollo \acrshort{XSDK} de Xilinx se pueden crear aplicaciones baremetal para ser lanzadas como DomU en Xen \cite{xen_domU_xsdk}. Como se muestra en la figura \ref{fig:domU_xsdk_1}, a nivel de configuración, la única diferencia con una aplicación baremetal que no esté destinada a ejecutarse con un hipervisor por debajo, es la indicación de que debe lanzarse con el nivel de excepción EL1.
+Mediante el entorno de desarrollo \acrshort{XSDK} de Xilinx se pueden crear aplicaciones baremetal para ser lanzadas como DomU en Xen \cite{xen_domU_xsdk}. Como se muestra en la figura \ref{fig:domU_xsdk_1}, a nivel de configuración, la única diferencia con una aplicación baremetal que no esté destinada a ejecutarse con un hipervisor por debajo, es la indicación de que debe lanzarse con el nivel de excepción EL1 (\textit{hypervisor guest: yes}).
 
 \begin{figure*}[h]
 	\centering
@@ -557,6 +557,63 @@ Mediante el entorno de desarrollo \acrshort{XSDK} de Xilinx se pueden crear apli
 	\label{fig:domU_xsdk_1}
 \end{figure*}
 
-Realmente, la configuración de ejecutarse en EL1 tiene más implicaciones pero la herramienta de Xilinx abstrae de las mismas al desarrolador. Cuando se genera una aplicación en \acrshort{XSDK} se necesita un \acrshort{BSP}
+Realmente, la opción de ejecutarse en EL1 tiene más implicaciones a nivel de software pero la herramienta de Xilinx abstrae de las mismas al desarrolador. Cuando se genera una aplicación en \acrshort{XSDK} se necesita un \acrshort{BSP}. En el caso de Xilinx, existen \acrshort{BSP}s que incluyen la inicialización a bajo nivel de los procesadores, así como los drivers de manejo de los dispositivos inluidos es las arquitecturas Zynq-7000 y MPSoC.\\
+A la hora de crear una nueva aplicación, si no existe el correspondiente \acrshort{BSP}, la herramienta lo genera automáticamente. En un \acrshort{BSP}s generado para un DomU que va a ejecutarse sobre un hipervisor, se incluyen en el código las llamadas al hipervisor (\textit{hvc} en ARMv8) o \textit{hypercalls} mencionadas en el capítulo \ref{ch:introduccion:primera}.\\
+
+La aplicación desarrollada está basada en uno de los ejemplos de Xilinx para manejo de interrupciones y sigue los mismos pasos que la celda \textit{inmate} de Jailhouse.
+Primero habilita el temporizador y lo configura en modo captura a fin de obtener el valor de la cuenta cuando se produce la interrupción y cuando es atendida desde su correspondiente \acrshort{ISR}.
+
+\begin{lstlisting}[style=CStyle]
+int Tmr_Init(void)
+{
+	uint32_t reg = 0;
+	uint32_t *tmr_ptr = (uint32_t *)TIMER_0_BASEADDR;
+
+	print(" Tmr_Init\r\n");
+
+	reg |= CAPT | MDT; /* Capture mode */
+
+	*(tmr_ptr + XTC_TCSR_OFFSET/4) = reg; /* timer 0 in capture mode */
+	tmr_ptr = (uint32_t *)TIMER_1_BASEADDR;
+	reg |= ENALL;
+	*(tmr_ptr + XTC_TCSR_OFFSET/4) = reg;   /* timer 1 in capture mode and start timer 0 and timer 1 */
+
+	xil_printf("TCSR 0x%08x\r\n", reg);
+
+
+return 0;
+}
+\end{lstlisting}
+
+A continuación se configura el controlador de interrupciones para capturar la interrupción con número 136:
+\begin{lstlisting}[style=CStyle]
+/* Enable the interrupt for the GPIO device.*/
+	XScuGic_Enable(IntcInstancePtr, IntrId);
+
+	/*
+	 * Enable the GPIO channel interrupts so that push button can be
+	 * detected and enable interrupts for the GPIO device
+	 */
+	XGpio_InterruptEnable(InstancePtr, IntrMask);
+	XGpio_InterruptGlobalEnable(InstancePtr);
+\end{lstlisting}
+
+La \textit{ISR} para la interrupción 136 activa el \acrshort{GPIO} que provoca la captura en el temporizador con el siguiente bloque de código:
+\begin{lstlisting}[style=CStyle]
+void GpioHandler(void *CallbackRef)
+{
+  uint32_t *p_gpio_capture = (uint32_t *)XPAR_AXI_GPIO_3_BASEADDR;
+
+	*p_gpio_capture = 0x1;
+
+	IntrFlag = 1;
+
+	/* Clear the Interrupt */
+	XGpio_InterruptClear(&Gpio, GlobalIntrMask);
+
+}
+\end{lstlisting}
+
+Al compilar este código, la herramienta \acrshort{XSDK} genera el fichero \textit{DomU_baremetal_app.bin} que se utilizará en la tarjeta UltraZed\texttrademark durante el test de Xen.
 
 \subsection{Test Dom0 Linux + DomU baremetal} \label{section:text_xen}
