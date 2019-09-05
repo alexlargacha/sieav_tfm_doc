@@ -393,14 +393,13 @@ En el caso de la aplicación desarrollada, .............. UART1 (bla bla) ......
 
 \section{Xen}
 
-Xen es el hipervisor que Xilinx tiene integrado en su herramientas de desarrollo y para el que da soporte. Al igual que Jailhouse, Xen también es un hipervisor de tipo 1 que una vez arrancado toma el control del hardware. Requiere de un dominio llamado Dom0 con privilegios especiales que tiene la capacidad de acceder al hardware, manejar operaciones de entra y salida e interactuar con los demás dominios. También expone una interfaz de control con la que gestionar la creación, eliminación, inicio y parada de sistemas guest.
+Xen es el hipervisor que Xilinx tiene integrado en su herramientas de desarrollo y para el que da soporte. Al igual que Jailhouse, Xen también es un hipervisor de tipo 1 que una vez arrancado toma el control del hardware. Requiere de un dominio llamado Dom0 con privilegios especiales con la capacidad de acceder al hardware, manejar operaciones de entra y salida e interactuar con los demás dominios. También expone una interfaz de control con la que gestionar la creación, eliminación, inicio y parada de sistemas guest.
 
 
 \subsection{Compilación de Xen}
 
 El código fuente de Xen se encuentra alojado oficialmente en \cite{xen_source}. Xilinx, al igual que hace con el kernel de Linux y con el cargador de arramque U-Boot, mantiene un repositorio público separado donde controla la versión de Xen que acompaña cada lanzamiento oficial de sus herramientas \cite{xen_source_xilinx}. La versión de Xen liberada con PetaLinux 2018.3 es la 4.11.\\
 La generación de los artefactos de Xen está incluida en el proceso de PetaLinux, pero no está habilitada por defecto. Para ello, se deben ejecutar los siguientes comandos:\\
-
 Seleccionar Xen dentro dentro del grupo de paquetes a incluir en el sistema de ficheros.
 \begin{lstlisting}[style=CStyle]
 $ petalinux-config -c rootfs
@@ -418,9 +417,9 @@ Petalinux Package Groups  ---> packagegroup-petalinux-xen   --->  [*] packagegro
   \label{fig:xen_menuconfig_1}
 \end{figure*}
 
-Una vez se ha habilitado esta opción, guardar la configuración y salir. Es necesario reconstruir el proyecto con el comando:
+Una vez se ha habilitada esta opción, guardar la configuración y salir. Es necesario reconstruir el proyecto con el comando:
 \begin{lstlisting}[style=CStyle]
-$ petalinux-config buid
+$ petalinux-buid
 \end{lstlisting}
 
 Al finalizar el proceso, entre los artefactos generados se encuentra el firmware de Xen que va a ser utilizado durante el arranque del sistema como se verá posteriormente. El nombre del fichero es \textit{xen.ub}
@@ -437,7 +436,7 @@ $ mkimage -A arm -C none -T kernel -a 0x0200000 -e 0x00200000 -n Xen -d xen/xen 
 \subsection{Configuración de dominios}
 \subsubsection{Dom0 Linux}
 
-El Dom0 Linux que se va utilizar es prácticamente el mismo que se ejecutaría nativamente con los artefactos generados con PetaLinux. Únicamente mediante unos nodos en el \textit{device-tree}, se definen los parámetros necesarios para arrancar Xen y Linux como Dom0. Estos parámetros se recogen en un fichero \textit{xen.dtsi} que es necesario incluir en el \textit{device-tree}. Dentro del proyecto PetaLinux, el fichero \textit{project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi} debe contener los siguinete en el inicio:
+El Dom0 Linux que se va utilizar es prácticamente el mismo que se ejecutaría nativamente con los artefactos generados con PetaLinux. Únicamente mediante unos nodos en el \textit{device-tree}, se definen los parámetros necesarios para arrancar Xen y Linux como Dom0. Estos parámetros se recogen en un fichero \textit{xen.dtsi} que es necesario incluir. Dentro del proyecto PetaLinux, el fichero \textit{project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi} debe contener lo siguiente en el inicio:
 
 \begin{lstlisting}[style=CStyle]
 /include/ "system-conf.dtsi"
@@ -446,8 +445,88 @@ El Dom0 Linux que se va utilizar es prácticamente el mismo que se ejecutaría n
 (...)
 \end{lstlisting}
 
+Es necesario también actualizar la receta de construcción del \textit{device-tree} en el proyecto de PetaLinux a fin de indicar la localización del fichero \textit{xen.dtsi}. Para ello, el fichero \textit{project-spec/meta-user/recipes-bsp/device-tree/device-tree.bbappend} debe contener las siguientes líneas:
+
+\begin{lstlisting}[style=CStyle]
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+
+SRC_URI += "file://system-user.dtsi"
+SRC_URI += "file://xen.dtsi"
+\end{lstlisting}
+
+El contenido del fichero \textit{xen.dtsi} es lo que utiliza Xen y el Dom0 para determinar la configuración con la que se arranca. En dicho fichero aparecen secciones como la siguiente:
+
+\begin{lstlisting}[style=CStyle]
+{
+	chosen {
+		#address-cells = <2>;
+		#size-cells = <1>;
+
+		xen,xen-bootargs = "console=dtuart dtuart=serial0 dom0_mem=768M bootscrub=0 maxcpus=1 timer_slop=0";
+		xen,dom0-bootargs = "console=hvc0 earlycon=xen earlyprintk=xen maxcpus=1 clk_ignore_unused";
+
+		dom0 {
+			compatible = "xen,linux-zimage", "xen,multiboot-module";
+			reg = <0x0 0x80000 0x3100000>;
+		};
+	};
+
+};
+(...)
+\end{lstlisting}
+
+En el parámetro \textit{xen,xen-bootargs} se especifica el dispositivo físico para la consola, el tamaño de la memoria (768MB) que se concede al Dom0, así como el máximo de CPUs. En el siguiente parámetro, destinado al Dom0, se define la consola como \textit{hvc0}. Esto implica que la consola del Dom0 pasa a través de Xen siendo la misma para los dos. En la sección \ref{section:text_xen} se muestran los mensajes producidos en el inicio del sistema tanto por Xen como por el Dom0.\\
+Se indica también el tipo de Dom0 que va a arrancar Xen. En este caso se trata de un kernel de Linux en formato zimage que se debe cargar en la dirección 0x80000 de memoria en el cargador de arranque U-Boot como se verá también en las siguientes secciones.
+
+El siguiente bloque del fichero contiene la definición de los dispositivos que pueden ser maestros de la MMU. En Xen para ARMv8 se hace uso de la extensión de virtualización que permite los mapeos de memoria virtual a física en dos fases como se explica en \cite{armv8_stage2}. De esta forma, se le indica a Xen la lista de los dispositivos que son capaces de mover datos directamente a memoria \acrshort{RAM} para permitir ese flujo a la hora de configurar la \acrshort{SMMU}.
+
+\begin{lstlisting}[style=CStyle]
+(...)
+&smmu {
+	status = "okay";
+	mmu-masters = < &gem0 0x874
+			&gem1 0x875
+			&gem2 0x876
+			&gem3 0x877
+			&dwc3_0 0x860
+			&dwc3_1 0x861
+			&qspi 0x873
+			&lpd_dma_chan1 0x868
+			&lpd_dma_chan2 0x869
+			&lpd_dma_chan3 0x86a
+(...)
+\end{lstlisting}
+
+Por último, aparecen los dispositivos existentes en el \textit{device-tree} que no van a ser manejados desde el Dom0 y que serán cedidos directamente a alguno de los DomU. En este caso, en el DomU se va a utilizar la \acrshort{UART}1 y los periféricos de \acrshort{GPIO} y temporizador incluidos en la parte de \acrshort{PL}.
+
+\begin{lstlisting}[style=CStyle]
+(...)
+&uart1 {
+       xen,passthrough = <0x1>;
+};
+
+&axi_gpio_0 {
+       xen,passthrough = <0x1>;
+};
+
+&axi_timer_0 {
+       xen,passthrough = <0x1>;
+};
+(...)
+\end{lstlisting}
+
+A fin de que la inclusión del fichero \textit{xen.dtsi} tenga efecto, se contruye el \textit{device-tree} de nuevo.
+
+\begin{lstlisting}[style=CStyle]
+$ petalinux-buid -c device-tree
+\end{lstlisting}
+
+El proceso de generación del \textit{device-tree} produce un fichero con extensión \textit{.dtb} que va a ser utilizado tanto por Xen como por el Dom0 durante el arranque.
 
 \subsubsection{DomU baremetal}
+
+Mediante el entorno de desarrollo \acrshort{XSDK} de Xilinx se pueden crear aplicaciones baremetal para ser lanzadas como DomU en Xen \cite{xen_domU_xsdk}.
+
 \subsubsection{Aplicación baremetal}
 
-\subsection{Test Linux + baremetal}
+\subsection{Test Dom0 Linux + DomU baremetal} \label{section:text_xen}
