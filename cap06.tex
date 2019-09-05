@@ -1,0 +1,16 @@
+\chapter{Conclusiones y líneas futuras de trabajo}
+\chaptermark{Conclusiones}
+
+Ambos hipervisores muestran un comportamiento apropiado para utilizarse en
+
+LA elección depende mucho de la aplicación específica para la que se utiliza el sistema.
+
+En caso de necesitar sobreutilización de recursos no queda otra opción que decantarse por Xen, ya que Jailhouse no ofrece esa opción. No se puede tampoco olvidar que la sobreutilización de recursos necesita de mecanimos de paravirtualización y el rendimiento en esta modalidad es inferior.
+
+Si la simplicidad ....
+
+Micro + dsp consolidados en un único integrado -> Jailhouse
+
+Como trabajo futuro sería muy interesante incluir una celda o dominio con un \acrshort{RTOS} y la misma estructura hardware e interrupciones. Para el caso de Xen es relativamente sencillo ya que proporcionan ejemplos precompilados y una guía de cómo crear un DomU con FreeRTOS y las herramientas de Xilinx. En el caso de Jailhouse esta tarea no es tan sencilla ya que actualmente solo existe un ejemplo de celda con FreeRTOS y es para la tarjeta Banana Pi (\url{http://www.banana-pi.org/}). La parte de arrancar la celda en Jailhouse requiere de una parte de código en ensamblador para configurar los vectores de excepciones etc. que hace falta portar al caso del UltraScale+\texttrademark MPSoC. Durante el desarrollo del TFM se hicieron algunos avances en este trabajo pero no se alcanzaron resultados satisfactorios por lo que no se han incuído en el documento final.
+
+Otro punto sobre el que se puede seguir trabajando es la configuración de Xen a la hora de lanzar DomUs. Xen proporciona una serie de parámetros para su propia ejecución que en el presente trabajo no se han modificado.

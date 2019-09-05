@@ -203,7 +203,7 @@ La estructura principal que define el sistema tiene los siguientes campos:
 
 \end{itemize}
 
-\subsubsection{Celda baremetal}
+\subsubsection{Celda baremetal} \label{jailhouse:baremetal}
 Lo único que se necesita definir en la celda \textit{inmate} que aloja la aplicación baremetal es el núcleo o núcleos en los que va a desplegarse, las zonas de memoria que se van a asignar y las interrupciones que se van a manejar. A grandes rasgos estas tres definiciones aparecen de la siguiente forma en el fichero \textit{ultrazed\_ehu\_irq.c}:
 
 \begin{lstlisting}[style=CStyle]
@@ -525,8 +525,38 @@ El proceso de generación del \textit{device-tree} produce un fichero con extens
 
 \subsubsection{DomU baremetal}
 
-Mediante el entorno de desarrollo \acrshort{XSDK} de Xilinx se pueden crear aplicaciones baremetal para ser lanzadas como DomU en Xen \cite{xen_domU_xsdk}.
+Xen necista un fichero de configuración para la ejecutar dominios no privilegiados. En dicho fichero se indican los parámetros que definen el DomU. En este caso, la definición que se ha utilizado se muestra a continuacion:
+
+\begin{lstlisting}[style=CStyle]
+#Guest name
+name = "DomU_baremetal_app"
+# Kernel image to boot
+kernel = "DomU_baremetal_app.bin"
+# Kernel command line options - Allocate 8MB
+memory = 8
+# Number of VCPUS
+vcpus = 1
+# Pin to CPU 1
+cpus = [1]
+irqs = [ 54, 136 ]
+iomem = [ "0xff010,1", "0xA0000,1", "0xA0001,1" ]
+\end{lstlisting}
+
+Como se observa en las primeras líneas, es necesario especificar el nombre del fichero binario que contiene la aplicación así como el tamaño del espacio de memoria que se le asigna para su ejecución. En este caso la aplicación ocupa unos pocos kilobytes, así que los 8 MB reservados son suficientes. En los siguientes parámetros se indica el número de CPUs virtuales (\textit{vcpu}) con las que se inicia el DomU y si se asigna específicamente alguno de los nucleos (\textit{cpu}). Este último parámetro es opcional. Al haber definido \textit{vpcu} y \textit{cpu}, ambos con valor 1, implica que se mapea específicamente la \textit{vcpu} con identificador 0 al núcleo con identificador 1. Estos parámetros admiten múltimples combinaciones que quedan fuera del alcance del presente trabajo.\\
+En cuanto a las interrupciones, al igual que en la celda \textit{inmate} de Jailhouse de la sección \ref{jailhouse:baremetal}, se le indica a Xen que las interrupciones con números 54 (\acrshort{UART}1) y 136 (\acrshort{PL} a \acrshort{PS} grupo 1) deben ser redirigidas a el DomU.\\
+Por último, en \textit{iomem}
 
 \subsubsection{Aplicación baremetal}
+
+Mediante el entorno de desarrollo \acrshort{XSDK} de Xilinx se pueden crear aplicaciones baremetal para ser lanzadas como DomU en Xen \cite{xen_domU_xsdk}. Como se muestra en la figura \ref{fig:domU_xsdk_1}, a nivel de configuración, la única diferencia con una aplicación baremetal que no esté destinada a ejecutarse con un hipervisor por debajo, es la indicación de que debe lanzarse con el nivel de excepción EL1.
+
+\begin{figure*}[h]
+	\centering
+	\includegraphics[width=0.70\textwidth]{recursos/domU_xsdk_1.png}
+	\caption{Configuración de proyecto en XSDK}
+	\label{fig:domU_xsdk_1}
+\end{figure*}
+
+Realmente, la configuración de ejecutarse en EL1 tiene más implicaciones pero la herramienta de Xilinx abstrae de las mismas al desarrolador. Cuando se genera una aplicación en \acrshort{XSDK} se necesita un \acrshort{BSP}
 
 \subsection{Test Dom0 Linux + DomU baremetal} \label{section:text_xen}
