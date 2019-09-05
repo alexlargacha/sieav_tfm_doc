@@ -401,25 +401,35 @@ Xen es el hipervisor que Xilinx tiene integrado en su herramientas de desarrollo
 El código fuente de Xen se encuentra alojado oficialmente en \cite{xen_source}. Xilinx, al igual que hace con el kernel de Linux y con el cargador de arramque U-Boot, mantiene un repositorio público separado donde controla la versión de Xen que acompaña cada lanzamiento oficial de sus herramientas \cite{xen_source_xilinx}. La versión de Xen liberada con PetaLinux 2018.3 de Xilinx es la 4.11.\\
 La generación de los artefactos de Xen está incluida en el proceso de PetaLinux, pero no está habilitada por defecto. Para ello, se deben ejecutar los siguientes comandos:\\
 
-Primero seleccionar Xen dentro dentro del grupo de paquetes a incluir en el sistema de ficheros.
+Seleccionar Xen dentro dentro del grupo de paquetes a incluir en el sistema de ficheros.
 \begin{lstlisting}[style=CStyle]
 $ petalinux-config -c rootfs
 \end{lstlisting}
 
-Aparece un menú en el que hay que navegar hasta la ventana que se muestra en la figura \ref{fig:xen_menuconfig_1}:
+Aparece un menú en el que hay que navegar hasta la ventana que se muestra en la figura \ref{fig:xen_menuconfig_1} y seleccionar la primera opción:
 \begin{lstlisting}[style=CStyle]
 Petalinux Package Groups  ---> packagegroup-petalinux-xen   --->  [*] packagegroup-petalinux-xen
 \end{lstlisting}
 
 \begin{figure*}[!h]
   \centering
-  \includegraphics[width=0.90\textwidth]{recursos/petalinux_xen_1.png}
+  \includegraphics[width=1.0\textwidth]{recursos/petalinux_xen_1.png}
   \caption{Configuración de paquetes en el sistema de ficheros}
   \label{fig:xen_menuconfig_1}
 \end{figure*}
 
+Una vez se ha habilitado esta opción es necesario reconstruir el proyecto con el comando:
+\begin{lstlisting}[style=CStyle]
+$ petalinux-config buid
+\end{lstlisting}
 
-Alternativamente a la generación mediante PetaLinux, exite siempre la posibilidad de descargar el código fuente y compilarlo. Para ello, se deben ejecutar los siguientes comandos \cite{xen_source_xilinx}
+Al finalizar el proceso, entre los artefactos generados se encuentra el firmware de Xen que va a ser utilizado durante el arranque del sistema como se verá posteriormente.
+
+Alternativamente a la generación mediante PetaLinux, existe siempre la posibilidad de descargar el código fuente y compilarlo. Para ello, se deben ejecutar los siguientes comandos \cite{xen_source_xilinx}
+
+\begin{lstlisting}[style=CStyle]
+$ make dist-xen XEN_TARGET_ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
+\end{lstlisting}
 
 \subsection{Configuración de celdas}
 \subsubsection{Celda Linux}
