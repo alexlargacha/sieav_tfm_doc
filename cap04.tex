@@ -398,7 +398,7 @@ Xen es el hipervisor que Xilinx tiene integrado en su herramientas de desarrollo
 
 \subsection{Compilación de Xen}
 
-El código fuente de Xen se encuentra alojado oficialmente en \cite{xen_source}. Xilinx, al igual que hace con el kernel de Linux y con el cargador de arramque U-Boot, mantiene un repositorio público separado donde controla la versión de Xen que acompaña cada lanzamiento oficial de sus herramientas \cite{xen_source_xilinx}. La versión de Xen liberada con PetaLinux 2018.3 de Xilinx es la 4.11.\\
+El código fuente de Xen se encuentra alojado oficialmente en \cite{xen_source}. Xilinx, al igual que hace con el kernel de Linux y con el cargador de arramque U-Boot, mantiene un repositorio público separado donde controla la versión de Xen que acompaña cada lanzamiento oficial de sus herramientas \cite{xen_source_xilinx}. La versión de Xen liberada con PetaLinux 2018.3 es la 4.11.\\
 La generación de los artefactos de Xen está incluida en el proceso de PetaLinux, pero no está habilitada por defecto. Para ello, se deben ejecutar los siguientes comandos:\\
 
 Seleccionar Xen dentro dentro del grupo de paquetes a incluir en el sistema de ficheros.
@@ -406,7 +406,7 @@ Seleccionar Xen dentro dentro del grupo de paquetes a incluir en el sistema de f
 $ petalinux-config -c rootfs
 \end{lstlisting}
 
-Aparece un menú en el que hay que navegar hasta la ventana que se muestra en la figura \ref{fig:xen_menuconfig_1} y seleccionar la primera opción:
+En el menú que se despliega al ejecutar el comando anterior, navegar hasta la ventana que se muestra en la figura \ref{fig:xen_menuconfig_1} y seleccionar la primera opción:
 \begin{lstlisting}[style=CStyle]
 Petalinux Package Groups  ---> packagegroup-petalinux-xen   --->  [*] packagegroup-petalinux-xen
 \end{lstlisting}
@@ -418,22 +418,36 @@ Petalinux Package Groups  ---> packagegroup-petalinux-xen   --->  [*] packagegro
   \label{fig:xen_menuconfig_1}
 \end{figure*}
 
-Una vez se ha habilitado esta opción es necesario reconstruir el proyecto con el comando:
+Una vez se ha habilitado esta opción, guardar la configuración y salir. Es necesario reconstruir el proyecto con el comando:
 \begin{lstlisting}[style=CStyle]
 $ petalinux-config buid
 \end{lstlisting}
 
-Al finalizar el proceso, entre los artefactos generados se encuentra el firmware de Xen que va a ser utilizado durante el arranque del sistema como se verá posteriormente.
+Al finalizar el proceso, entre los artefactos generados se encuentra el firmware de Xen que va a ser utilizado durante el arranque del sistema como se verá posteriormente. El nombre del fichero es \textit{xen.ub}
 
 Alternativamente a la generación mediante PetaLinux, existe siempre la posibilidad de descargar el código fuente y compilarlo. Para ello, se deben ejecutar los siguientes comandos \cite{xen_source_xilinx}
 
 \begin{lstlisting}[style=CStyle]
+$ git clone git@github.com:Xilinx/xen.git
+$ cd xen
 $ make dist-xen XEN_TARGET_ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
+$ mkimage -A arm -C none -T kernel -a 0x0200000 -e 0x00200000 -n Xen -d xen/xen  xen.ub
 \end{lstlisting}
 
-\subsection{Configuración de celdas}
-\subsubsection{Celda Linux}
-\subsubsection{Celda baremetal}
+\subsection{Configuración de dominios}
+\subsubsection{Dom0 Linux}
+
+El Dom0 Linux que se va utilizar es prácticamente el mismo que se ejecutaría nativamente con los artefactos generados con PetaLinux. Únicamente mediante unos nodos en el \textit{device-tree}, se definen los parámetros necesarios para arrancar Xen y Linux como Dom0. Estos parámetros se recogen en un fichero \textit{xen.dtsi} que es necesario incluir en el \textit{device-tree}. Dentro del proyecto PetaLinux, el fichero \textit{project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi} debe contener los siguinete en el inicio:
+
+\begin{lstlisting}[style=CStyle]
+/include/ "system-conf.dtsi"
+/include/ "xen.dtsi"
+/ {
+(...)
+\end{lstlisting}
+
+
+\subsubsection{DomU baremetal}
 \subsubsection{Aplicación baremetal}
 
 \subsection{Test Linux + baremetal}
