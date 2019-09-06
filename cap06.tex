@@ -1,16 +1,17 @@
 \chapter{Conclusiones y líneas futuras de trabajo}
 \chaptermark{Conclusiones}
 
-Ambos hipervisores muestran un comportamiento apropiado para utilizarse en
+Ambos hipervisores muestran un comportamiento apropiado para utilizarse en sistemas embebidos, ya que su respuesta ante interrupciones, aún siendo superior a la obtenida sin la presencia de hipervisor, se situa dentro de los márgenes razonables para muchas aplicaciones de tiempo real.\\
 
-LA elección depende mucho de la aplicación específica para la que se utiliza el sistema.
+Si bien Jailhouse, por su simplicidad, ofrece an latencia menor que Xen, ambas se encuentran en el mismo orden de magnitud. En un sistema en el que se decida utilizar virtualización, la elección depende mucho de la aplicación. Se podría decir que:
 
-En caso de necesitar sobreutilización de recursos no queda otra opción que decantarse por Xen, ya que Jailhouse no ofrece esa opción. No se puede tampoco olvidar que la sobreutilización de recursos necesita de mecanimos de paravirtualización y el rendimiento en esta modalidad es inferior.
+\begin{itemize}
+  \item En caso de necesitar sobreutilización de recursos y flexibilidad, no queda otra opción que decantarse por Xen, ya que Jailhouse no ofrece esa opción. No se puede tampoco olvidar que la sobreutilización de recursos necesita de mecanimos de paravirtualización y el rendimiento en esta modalidad es inferior.
 
-Si la simplicidad ....
+ \item Si la simplicidad es un factor importante y el sistema está delimitado, Jailhouse podría ser la opción a utilizar. Un ejemplo podría ser el caso de consolidar en un único \acrshort{SoC} un sistema legacy clásico de los que incluyen un \acrshort{DSP} para tratamiento de señal y un microprocesador de propósito general para las funciones de comunicaciones y entrada y salida.
 
-Micro + dsp consolidados en un único integrado -> Jailhouse
+\end{itemize}}
 
-Como trabajo futuro sería muy interesante incluir una celda o dominio con un \acrshort{RTOS} y la misma estructura hardware e interrupciones. Para el caso de Xen es relativamente sencillo ya que proporcionan ejemplos precompilados y una guía de cómo crear un DomU con FreeRTOS y las herramientas de Xilinx. En el caso de Jailhouse esta tarea no es tan sencilla ya que actualmente solo existe un ejemplo de celda con FreeRTOS y es para la tarjeta Banana Pi (\url{http://www.banana-pi.org/}). La parte de arrancar la celda en Jailhouse requiere de una parte de código en ensamblador para configurar los vectores de excepciones etc. que hace falta portar al caso del UltraScale+\texttrademark MPSoC. Durante el desarrollo del TFM se hicieron algunos avances en este trabajo pero no se alcanzaron resultados satisfactorios por lo que no se han incuído en el documento final.
+Como trabajo futuro sería muy interesante incluir una celda o dominio con un \acrshort{RTOS} y la misma estructura hardware e interrupciones. Para el caso de Xen, Xilinx y DornerWorks es proporcionan ejemplos precompilados y una guía de cómo crear un DomU con FreeRTOS con sus herramientas. Actualmente en el caso de Jailhouse, solo existe un ejemplo de celda con FreeRTOS y es para la tarjeta Banana Pi. El proceso de arrancar la celda en Jailhouse requiere de una parte de código en ensamblador para inicializar los vectores de excepciones etc., que hace falta portar al caso del UltraScale+\texttrademark MPSoC. Durante el desarrollo del presente trabajo se hicieron algunos avances en este sentido pero no se alcanzaron resultados satisfactorios por lo que no se han incuído en el documento final.
 
-Otro punto sobre el que se puede seguir trabajando es la configuración de Xen a la hora de lanzar DomUs. Xen proporciona una serie de parámetros para su propia ejecución que en el presente trabajo no se han modificado.
+Otro punto sobre el que se puede seguir trabajando es la parametrización de Xen a la hora de lanzar DomUs. Xen proporciona una serie de características de su propio funcionamiento que se pueden definir a la hora de lanzar el firmawre de Xen. Etre estas funciones se encuentra por ejemplo, el modo en el que el scheduler reparte los núcleos entre los distintos dominios. Para el presente trabajo se han utilizado las opciones por defecto.

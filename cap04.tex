@@ -396,7 +396,7 @@ En el caso de la aplicación desarrollada, .............. UART1 (bla bla) ......
 Xen es el hipervisor que Xilinx tiene integrado en su herramientas de desarrollo y para el que da soporte. Al igual que Jailhouse, Xen también es un hipervisor de tipo 1 que una vez arrancado toma el control del hardware. Requiere de un dominio llamado Dom0 con privilegios especiales con la capacidad de acceder al hardware, manejar operaciones de entra y salida e interactuar con los demás dominios. También expone una interfaz de control con la que gestionar la creación, eliminación, inicio y parada de sistemas guest.
 
 
-\subsection{Compilación de Xen}
+\subsection{Compilación de Xen} \label{xen_compilacion}
 
 El código fuente de Xen se encuentra alojado oficialmente en \cite{xen_source}. Xilinx, al igual que hace con el kernel de Linux y con el cargador de arramque U-Boot, mantiene un repositorio público separado donde controla la versión de Xen que acompaña cada lanzamiento oficial de sus herramientas \cite{xen_source_xilinx}. La versión de Xen liberada con PetaLinux 2018.3 es la 4.11.\\
 La generación de los artefactos de Xen está incluida en el proceso de PetaLinux, pero no está habilitada por defecto. Para ello, se deben ejecutar los siguientes comandos:\\
@@ -434,7 +434,7 @@ $ mkimage -A arm -C none -T kernel -a 0x0200000 -e 0x00200000 -n Xen -d xen/xen 
 \end{lstlisting}
 
 \subsection{Configuración de dominios}
-\subsubsection{Dom0 Linux}
+\subsubsection{Dom0 Linux} \label{xen_dom0_config}
 
 El Dom0 Linux que se va utilizar es prácticamente el mismo que se ejecutaría nativamente con los artefactos generados con PetaLinux. Únicamente mediante unos nodos en el \textit{device-tree}, se definen los parámetros necesarios para arrancar Xen y Linux como Dom0. Estos parámetros se recogen en un fichero \textit{xen.dtsi} que es necesario incluir. Dentro del proyecto PetaLinux, el fichero \textit{project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi} debe contener lo siguiente en el inicio:
 
@@ -614,6 +614,13 @@ void GpioHandler(void *CallbackRef)
 }
 \end{lstlisting}
 
-Al compilar este código, la herramienta \acrshort{XSDK} genera el fichero \textit{DomU_baremetal_app.bin} que se utilizará en la tarjeta UltraZed\texttrademark durante el test de Xen.
+Al compilar este código, la herramienta \acrshort{XSDK} genera el fichero \textit{DomU\_baremetal\_app.bin} que se utilizará en la tarjeta UltraZed\texttrademark durante el test de Xen.
 
 \subsection{Test Dom0 Linux + DomU baremetal} \label{section:text_xen}
+
+En el caso de Xen, la secuencia de arranque de la tarjeta electrónica difiere en el orden de los elementos respecto a Jailhouse. En este caso, el cargador de arranque U-Boot lanza directamente el firmware de Xen y desde aquí, se lanza el Dom0. Es necesario cargar en memoria, el binario de Xen generado en la sección \ref{xen_compilacion}, así como el \textit{device-tree} de la sección \ref{xen_dom0_config}, y la imagen del kernel de Linux del anexo \ref{petalinux}. Desde la consola de U-Boot, se situan los ficheros en las posiciones de memoria 0x1030000, 0x1000000 y 0x80000 respectivamente. Se pueden cargar los ficheros en esas posiciones ya sea por \acrshort{JTAG}, leyendo dede la tarjeta microSD o \acrshort{eMMC} o bien mediante tftp.
+Con estos elementos se lanza el arranque de la siguiente forma desde la consola de U-Boot:
+
+\begin{lstlisting}[style=CStyle]
+
+\end{lstlisting}
