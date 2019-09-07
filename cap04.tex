@@ -273,7 +273,7 @@ De estas secciones, cabe destacar la parte en la que se le asignan a la celda so
 En cuanto a las interrupciones, en el campo \textit{pin\_bitmap} dentro de \textit{irqchips} solo se activan los flags correspondientes a las interupciones número 54 y 136, \acrshort{UART} 1 y \acrshort{PL}-\acrshort{PS} Grupo 1 interrupción 0 respectivamente \cite{mpsoc_registers}.\\
 En el campo \textit{cpus} aparece el valor 0x8 (1000b) lo que indica que esta celda va a tener asignado el núcleo con identificador 3 (los identificador van de 0 a 3 para los 4 núcleos Cortex-A53).
 
-\subsubsection{Aplicación baremetal} \label{app_baremetal}
+\subsubsection{Aplicación baremetal} \label{jailhouse:app_baremetal}
 
 Jailhouse proporciona una serie de funciones genéricas de configuración del sistema para poder ser utilizadas por las celdas \textit{inmates} en el directorio \textit{inmates/lib}. Aquí se encuentran por ejemplo la API para configurar el \acrshort{GIC}, Timer o \acrshort{UART}. Tomando como referencia el ejemplo existente para el manejo de la interrupción del temporizador privado de ARM (número 27) se ha desarrollado la aplicación que responde a la interupción 136 producida por un cambio en los valores del switch conectado a \acrshort{PL} descrito en la sección \ref{vivado_config}.
 
@@ -351,7 +351,7 @@ La tarjeta electrónica se va a arrancar con los artefactos generados en el proy
 };
 \end{lstlisting}
 
-El primer paso para probar la respuesta de la aplicación baremetal descrita en la sección \ref{app_baremetal} es copiar en la plataforma destino los ficheros compilados de las definiones de celdas y el binario de la aplicación. En el caso de las celdas creadas para la tarjeta UltraZed\texttrademark son: \textit{ultrazed\_ehu.cell}, \textit{ultrazed\_ehu\_irq.cell} y \textit{irq\_demo.bin}.
+El primer paso para probar la respuesta de la aplicación baremetal descrita en la sección \ref{jailhouse:app_baremetal} es copiar en la plataforma destino los ficheros compilados de las definiones de celdas y el binario de la aplicación. En el caso de las celdas creadas para la tarjeta UltraZed\texttrademark son: \textit{ultrazed\_ehu.cell}, \textit{ultrazed\_ehu\_irq.cell} y \textit{irq\_demo.bin}.
 
 \begin{lstlisting}[style=CStyle]
 root@ultrazed_hyp_1:~# jailhouse enable ultrazed_ehu.cell
@@ -576,7 +576,7 @@ Como se observa en las primeras líneas, es necesario especificar el nombre del 
 En cuanto a las interrupciones, al igual que en la celda \textit{inmate} de Jailhouse de la sección \ref{jailhouse:baremetal}, se le indica a Xen que las interrupciones con números 54 (\acrshort{UART}1) y 136 (\acrshort{PL} a \acrshort{PS} grupo 1) deben ser redirigidas a el DomU.\\
 Por último, en \textit{iomem} se definen las zonas de memoria que va a manejar directamente el DomU. En este caso se trata de la propia \acrshort{UART}1, los bloques de \acrshort{GPIO} y temporizadores inlcuidos en \acrshort{PL}.
 
-\subsubsection{Aplicación baremetal}
+\subsubsection{Aplicación baremetal} \label{subsect:xen_app_baremetal}
 
 Mediante el entorno de desarrollo \acrshort{XSDK} de Xilinx se pueden crear aplicaciones baremetal para ser lanzadas como DomU en Xen \cite{xen_domU_xsdk}. Como se muestra en la figura \ref{fig:domU_xsdk_1}, a nivel de configuración, la única diferencia con una aplicación baremetal que no esté destinada a ejecutarse con un hipervisor por debajo, es la indicación de que debe lanzarse con el nivel de excepción EL1 (\textit{hypervisor guest: yes}).
 
