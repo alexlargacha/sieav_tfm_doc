@@ -57,17 +57,19 @@ La tarjeta electrónica utilizada se compone de dos partes: UltraZed-EG\texttrad
 
 En la plataforma electrónica que se ha especificado, el componente principal y sobre el que se van a ejecutar los programas y pruebas que se desarrollen es el UltraScale+\texttrademark MPSoC. Este componente dispone de una parte de \acrshort{PS} en la que se encueltran los 4 núcleos ARM Cortex-A53 en los que se van a ejecutar las celdas o dominios en los que se va a dividir el sistema virtualizado. Respecto a la zona de \acrshort{PL}, se va a utilizar como mero instrumento de medida y entrada/salida. En la figura \ref{fig:vivado_1} aparece el diseño de bloques que se ha implementado:
 
-\begin{figure*}[h]
+\begin{figure*}[h!]
 	\centering
-	\includegraphics[width=0.95\textwidth]{recursos/vivado_1.png}
+	\includegraphics[angle=90,width=\textwidth,height=\textheight,keepaspectratio]{recursos/vivado_1.png}
 	\caption{Diseño de bloques de Vivado}
 	\label{fig:vivado_1}
 \end{figure*}
 
 Como se puede observar, se trata de un sistema muy sencillo en el que todos los bloques se conectan por bus AXI y por tanto aparecen mapeados en memoria del microprocesador. El objetivo es medir la latencia que introducen los hipervisores en el tratamiento de interrupciones en sistemas guest baremetal y con ese fin se han dispuesto los siguientes bloques y conexiones entre ellos.\\
 
-Se ha tomado como generador de interrupciones el cambio en el valor de alguna de las entradas del \acrshort{DIP} switch que está conectado a \acrshort{PL}.
-Los pines del switch están conectados como entradas del bloque \acrshort{AXI} \acrshort{GPIO} \cite{axi_gpio} \textit{axi\_gpio\_0}. En este bloque se ha habilitado la salida de la interrupción y se ha conectado al grupo de interrupciones de \acrshort{PL} a \acrshort{PS} número 1. Este grupo de interupciones tiene unos números de interrupción que luego tendrán que ser gestionados desde el programa. Estos números los determina la propia arquitectura de Xilinx y ARM. En el presente caso la interrupción es la número 136 \cite{axi_trm}. Más adelante se verá como se utiliza este número en el software.\\
+Se ha tomado como generador de interrupciones el cambio en el valor del la entradas del bloque \acrshort{AXI} \acrshort{GPIO} con nombre \textit{axi\_gpio\_0}.
+En este bloque se ha habilitado la salida de la interrupción y se ha conectado al grupo de interrupciones de \acrshort{PL} a \acrshort{PS} número 1 (línea verde en la figura \ref{fig:vivado_1}). Este grupo de interupciones tiene unos números de interrupción que luego tendrán que ser gestionados desde el programa. Estos números los determina la propia arquitectura de Xilinx y ARM. En el presente caso la interrupción es la número 136 \cite{axi_trm}. Más adelante se verá como se utiliza este número en el software.\\
+La entrada del bloque \textit{axi\_gpio\_0} está conectada a la salida de un temporizador con nombre \textit{axi\_timer\_1} que se va a configurar en modo \acrshort{PWM} a fin de generar interrupciones periódicas (línea morada en la figura \ref{fig:vivado_1}).
+
 
 Con objeto de medir con precisión la latencia introducida se ha utilizado un bloque \acrshort{AXI} Timer \cite{axi_timer}. Este bloque se configura en modo captura y como se puede ver en el diagrama, una de las entradas de captura es la interrupción generada por el bloque \acrshort{AXI} \acrshort{GPIO} descrito anteriormente. La otra señal de captura la genera el bloque \textit{axi\_gpio\_3}. La idea principal detrás de esta configuración es poder capturar el valor del contador del Timer en el momento en el que se produce la interrupción y también en el momento en el que la rutina de atención a la interrupción entra y activa la salida de \textit{axi\_gpio\_3}. La diferencia entre estos dos valores es el tiempo que se tarda en atender a la interrupción.
 

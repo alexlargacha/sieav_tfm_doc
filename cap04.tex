@@ -277,48 +277,57 @@ En el campo \textit{cpus} aparece el valor 0x8 (1000b) lo que indica que esta ce
 
 Jailhouse proporciona una serie de funciones genéricas de configuración del sistema para poder ser utilizadas por las celdas \textit{inmates} en el directorio \textit{inmates/lib}. Aquí se encuentran por ejemplo la API para configurar el \acrshort{GIC}, Timer o \acrshort{UART}. Tomando como referencia el ejemplo existente para el manejo de la interrupción del temporizador privado de ARM (número 27) se ha desarrollado la aplicación que responde a la interupción 136 producida por un cambio en los valores del switch conectado a \acrshort{PL} descrito en la sección \ref{vivado_config}.
 
-El código resultante se encuentra en el fichero queda como se muestra a continuación:
+En el código resultante se inicializan los dispositivos que se van a utilizar en el bucle principal y se atiene a la interrupción en la función \textit{handle\_IRQ}:
 \begin{lstlisting}[style=CStyle]
 #include <inmate.h>
 #include <gic.h>
 
 #define GPIO_IRQ_NUM		136
 
-#define GPIO_LEDS_BASE_ADDRESS  	0xA0001000
-#define GPIO_SWITCH_BASE_ADDRESS  	0xA0000000
+(...)
 
 static void handle_IRQ(unsigned int irqn)
 {
-    unsigned int *p_gpio_switch = (unsigned int *)GPIO_SWITCH_BASE_ADDRESS;
-    map_range((void *)GPIO_SWITCH_BASE_ADDRESS, 0x2000, MAP_UNCACHED);
+    unsigned int taux = 0;
+    /* gpio to 1  to capture event */
+    mmio_write32((p_gpio_capture + 0/4), 0x1);
 
-	if (irqn != GPIO_IRQ_NUM)
-		return;
+    /* Clear channel 1 interrupts */
+    mmio_write32((p_gpio_switch + 0x120/4), 0x1);
 
-	printk("Button pressed\n");
+    /* Get timer valuer from capture events */
+    t1 = mmio_read32(p_capture_timer_0 + XTC_TLR_OFFSET/4);
+    t2 = mmio_read32(p_capture_timer_1 + XTC_TLR_OFFSET/4);
+    taux = t2 - t1;
 
-    mmio_write32((p_gpio_switch + 0x120/4), 0x1); /* Clear channel 1 interrupts */
-
+    /* gpio to 0 again */
+    mmio_write32((p_gpio_capture + 0/4), 0x0);
+    printk("delay %u\n", taux);
+    capture_timer_reload();
 }
 
+(...)
 void inmate_main(void)
 {
-	unsigned int *p_gpio_switch = (unsigned int *)GPIO_SWITCH_BASE_ADDRESS;
+    printk("Jailhouse IRQ lattency test ...\n");
 
-	printk("Initializing the GIC for GPIO IRQ...\n");
+    map_range((void *)PL_DEVICES_BASE_ADDRESS, 0x5000, MAP_UNCACHED);
+    mmio_write32((p_gpio_capture + 0/4), 0x0);
 
-    map_range((void *)GPIO_SWITCH_BASE_ADDRESS, 0x2000, MAP_UNCACHED);
+    capture_timer_init(); /* Initialize timer for lattency measurement */
+    gpio_init_irq();      /* Initialize gpio irq axi_gpio_0 */
+    pwm_timer_init();     /* Initialize timer for pwm output */
 
-	/* AXI GPIO IRQ config */
-	mmio_write32((p_gpio_switch + 0x4/4), 0xFF); /* All inputs */
-	mmio_write32((p_gpio_switch + 0x128/4), 1 << 0); /* Enable channel 1 interrupts */
-	mmio_write32((p_gpio_switch + 0x11C/4), 1 << 31); /* Enable global interrupt */
+    /* Connect ISR handler to IRQ */
+    gic_setup(handle_IRQ);
+    gic_enable_irq(GPIO_IRQ_NUM);
 
-	gic_setup(handle_IRQ);
-	gic_enable_irq(GPIO_IRQ_NUM);
+    /* enable pwm output */
+    pwm_timer_enable();
 
-	halt();
+    halt();
 }
+
 \end{lstlisting}
 
 \subsection{Test Linux + baremetal}
@@ -335,6 +344,9 @@ La tarjeta electrónica se va a arrancar con los artefactos generados en el proy
   status = "disabled";
 };
 &axi_timer_0 {
+  status = "disabled";
+};
+&axi_timer_1 {
   status = "disabled";
 };
 \end{lstlisting}
@@ -389,7 +401,25 @@ Started cell "gpio-irq-demo"
 
 Este proceso es el que aparece representado a nivel de bloques en la figura \ref{fig:jail_2}.\\
 
-En el caso de la aplicación desarrollada, .............. UART1 (bla bla) ........
+En el caso de la aplicación desarrollada, simplemente se atienden a las interrupciones producidas por un bloque \acrshort{AXI} \acrshort{GPIO}, se mide la latencia mediante un temporizador y se muestra en pantalla. La salida de mensajes de la celda baremetal se produce por la \acrshort{UART}1, que es distinta a la que utilza la \textit{root cell}.
+
+\begin{lstlisting}[style=CStyle]
+Jailhouse IRQ lattency test ...
+
+delay 96
+delay 95
+delay 95
+(...)
+\end{lstlisting}
+
+Jailhouse incorpora una serie de comandos para el control de las celdas \textit{inmate}. Por ejemplo, mediante el siguiente comando se pueden listar las celdas activas del sistema:
+
+\begin{lstlisting}[style=CStyle]
+root@ultrazed_hyp_1:~/jailhouse# jailhouse cell list
+ID      Name                    State             Assigned CPUs           Failed CPUs
+0       UltraZed SoM ehu        running           0-2
+1       gpio-irq-demo           running           3
+\end{lstlisting}
 
 \section{Xen}
 
@@ -550,7 +580,7 @@ Por último, en \textit{iomem} se definen las zonas de memoria que va a manejar 
 
 Mediante el entorno de desarrollo \acrshort{XSDK} de Xilinx se pueden crear aplicaciones baremetal para ser lanzadas como DomU en Xen \cite{xen_domU_xsdk}. Como se muestra en la figura \ref{fig:domU_xsdk_1}, a nivel de configuración, la única diferencia con una aplicación baremetal que no esté destinada a ejecutarse con un hipervisor por debajo, es la indicación de que debe lanzarse con el nivel de excepción EL1 (\textit{hypervisor guest: yes}).
 
-\begin{figure*}[h]
+\begin{figure*}[!h]
 	\centering
 	\includegraphics[width=0.70\textwidth]{recursos/domU_xsdk_1.png}
 	\caption{Configuración de proyecto en XSDK}
@@ -561,28 +591,25 @@ Realmente, la opción de ejecutarse en EL1 tiene más implicaciones a nivel de s
 A la hora de crear una nueva aplicación, si no existe el correspondiente \acrshort{BSP}, la herramienta lo genera automáticamente. En un \acrshort{BSP}s generado para un DomU que va a ejecutarse sobre un hipervisor, se incluyen en el código las llamadas al hipervisor (\textit{hvc} en ARMv8) o \textit{hypercalls} mencionadas en el capítulo \ref{ch:introduccion:primera}.\\
 
 La aplicación desarrollada está basada en uno de los ejemplos de Xilinx para manejo de interrupciones y sigue los mismos pasos que la celda \textit{inmate} de Jailhouse.
-Primero habilita el temporizador y lo configura en modo captura a fin de obtener el valor de la cuenta cuando se produce la interrupción y cuando es atendida desde su correspondiente \acrshort{ISR}.
+Primero habilita los temporizadores incluídos en la zona de \acrshort{PL}. Uno de ellos de utiliza para generar la señal \acrshort{PWM} que provoca las interrupciones del bloque \acrshort{GPIO} y el otro se configura para capturar los instantes en los que se produce la interrupción y el tiempo que se tarda en atenderla desde la correspondiente \acrshort{ISR}.
 
 \begin{lstlisting}[style=CStyle]
-int Tmr_Init(void)
-{
-	uint32_t reg = 0;
-	uint32_t *tmr_ptr = (uint32_t *)TIMER_0_BASEADDR;
+(...)
 
-	print(" Tmr_Init\r\n");
+/* Initialize the Capture Timer . If an error occurs then exit */
+	Status = Tmr0_Init();
+	if (Status != XST_SUCCESS) {
+		return XST_FAILURE;
+	}
 
-	reg |= CAPT | MDT; /* Capture mode */
+	/* Initialize the PWM Timer . If an error occurs then exit */
+	Status = Tmr1_Init(&TimerCounterInst, TMRCTR_DEVICE_ID);
+	if (Status != XST_SUCCESS) {
+		xil_printf("Tmrctr PWM Example Failed\r\n");
+		return XST_FAILURE;
+	}
 
-	*(tmr_ptr + XTC_TCSR_OFFSET/4) = reg; /* timer 0 in capture mode */
-	tmr_ptr = (uint32_t *)TIMER_1_BASEADDR;
-	reg |= ENALL;
-	*(tmr_ptr + XTC_TCSR_OFFSET/4) = reg;   /* timer 1 in capture mode and start timer 0 and timer 1 */
-
-	xil_printf("TCSR 0x%08x\r\n", reg);
-
-
-return 0;
-}
+(...)
 \end{lstlisting}
 
 A continuación se configura el controlador de interrupciones para capturar la interrupción con número 136:
@@ -614,6 +641,25 @@ void GpioHandler(void *CallbackRef)
 }
 \end{lstlisting}
 
+Por último, en el bucle principal del programa, se espera a que se active \textit{IntrFlag} para leer del temporizador de captura los valores correspondietes para calcular la latencia de la interuupción:
+
+\begin{lstlisting}[style=CStyle]
+(...)
+while(irq_count < NUM_SAMPLES) {
+		if (IntrFlag) {
+			*p_gpio_capture = 0x0;
+			IntrFlag = 0;
+			irq_count++;
+
+      /* Get capture timer values */
+			t1[irq_count] = *(tmr_ptr_0 + XTC_TLR_OFFSET/4);
+			t2[irq_count] = *(tmr_ptr_1 + XTC_TLR_OFFSET/4);
+			Tmr0_reload();
+		}
+	}
+(...)
+\end{lstlisting}
+
 Al compilar este código, la herramienta \acrshort{XSDK} genera el fichero \textit{DomU\_baremetal\_app.bin} que se utilizará en la tarjeta UltraZed\texttrademark durante el test de Xen.
 
 \subsection{Test Dom0 Linux + DomU baremetal} \label{section:text_xen}
@@ -622,5 +668,56 @@ En el caso de Xen, la secuencia de arranque de la tarjeta electrónica difiere e
 Con estos elementos se lanza el arranque de la siguiente forma desde la consola de U-Boot:
 
 \begin{lstlisting}[style=CStyle]
+(...)
+In:    serial@ff000000
+Out:   serial@ff000000
+Err:   serial@ff000000
+Board: Xilinx ZynqMP
+Net:   ZYNQ GEM: ff0e0000, phyaddr 9, interface rgmii-id
+eth0: ethernet@ff0e0000
+Hit any key to stop autoboot:  0
+ZynqMP>
+ZynqMP> bootm 1030000 2000000 1000000
+(...)
+\end{lstlisting}
 
+En el inicio del sistema, los mensajes que aparecen son del firmware de Xen y tienen el siguiente aspecto:
+\begin{lstlisting}[style=CStyle]
+Starting kernel ...
+
+ Xen 4.11.1-pre
+(XEN) Xen version 4.11.1-pre (@) (aarch64-xilinx-linux-gcc (GCC) 7.3.0) debug=n  Mon Dec  3 21:50:14 UTC 2018
+(XEN) Latest ChangeSet: Thu Nov 8 15:40:11 2018 -0800 git:b2edf52-dirty
+(XEN) Processor: 410fd034: "ARM Limited", variant: 0x0, part 0xd03, rev 0x4
+(XEN) 64-bit Execution:
+(XEN)   Processor Features: 0000000000002222 0000000000000000
+(XEN)     Exception Levels: EL3:64+32 EL2:64+32 EL1:64+32 EL0:64+32
+(XEN)     Extensions: FloatingPoint AdvancedSIMD
+(XEN)   Debug Features: 0000000010305106 0000000000000000
+(XEN)   Auxiliary Features: 0000000000000000 0000000000000000
+(XEN)   Memory Model Features: 0000000000001122 0000000000000000
+(XEN)   ISA Features:  0000000000011120 0000000000000000
+(XEN) 32-bit Execution:
+(XEN)   Processor Features: 00000131:00011011
+(XEN)     Instruction Sets: AArch32 A32 Thumb Thumb-2 Jazelle
+(XEN)     Extensions: GenericTimer Security
+(XEN)   Debug Features: 03010066
+(XEN)   Auxiliary Features: 00000000
+(XEN)   Memory Model Features: 10201105 40000000 01260000 02102211
+(XEN)  ISA Features: 02101110 13112111 21232042 01112131 00011142 00011121
+(XEN) Generic Timer IRQ: phys=30 hyp=26 virt=27 Freq: 99999 KHz
+(XEN) GICv2 initialization:
+(XEN)         gic_dist_addr=00000000f9010000
+(XEN)         gic_cpu_addr=00000000f9020000
+(XEN)         gic_hyp_addr=00000000f9040000
+(XEN)         gic_vcpu_addr=00000000f9060000
+(XEN)         gic_maintenance_irq=25
+(XEN) GICv2: Adjusting CPU interface base to 0xf902f000
+(XEN) GICv2: 192 lines, 4 cpus, secure (IID 0200143b).
+(XEN) Using scheduler: SMP Credit Scheduler (credit)
+(XEN) Allocated console ring of 16 KiB.
+(XEN) Bringing up CPU1
+(XEN) Bringing up CPU2
+(XEN) Bringing up CPU3
+(XEN) Brought up 4 CPUs
 \end{lstlisting}
