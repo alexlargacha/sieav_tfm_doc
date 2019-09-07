@@ -35,6 +35,8 @@
 \setcounter{tocdepth}{3} %Numbering subsubsection and showing it in Table of Contents
 \setcounter{secnumdepth}{3}
 
+\usepackage{pdfpages}
+
 \usepackage{listings}
 \definecolor{mGreen}{rgb}{0,0.6,0}
 \definecolor{mGray}{rgb}{0.5,0.5,0.5}
@@ -87,7 +89,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% TÍTULO, RESUMEN, AGRADECIMIENTOS Y LISTAS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %	TÍTULO
 % Página con el título, hay que entrar en title.tex para modificar: nombre del trabajo, autor, tutores y fecha
-\include*{title}
+
+%\include*{title}
+\includepdf{recursos/title.pdf}
 
 %	ÍNDICE
 \tableofcontents % indice de contenidos
