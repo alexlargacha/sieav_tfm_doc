@@ -681,7 +681,7 @@ ZynqMP> bootm 1030000 2000000 1000000
 (...)
 \end{lstlisting}
 
-En el inicio del sistema, los mensajes que aparecen son del firmware de Xen y tienen el siguiente aspecto:
+En el inicio del sistema, los mensajes que aparecen son del firmware de Xen:
 \begin{lstlisting}[style=CStyle]
 Starting kernel ...
 
@@ -720,4 +720,36 @@ Starting kernel ...
 (XEN) Bringing up CPU2
 (XEN) Bringing up CPU3
 (XEN) Brought up 4 CPUs
+\end{lstlisting}
+
+Una vez Xen ha arrancado, procecede a lanzar el Dom0, en este caso Linux, tal y como se ha indicado en la descripción del fichero \textit{xen.dtsi} en la sección \ref{xen_dom0_config}.\\
+Una vez arrancado el Dom0, se copia el fichero de configuración del DomU (\textit{DomU.cfg}) y el fichero binario con la aplicación baremetal compilada con \acrshort{XSDK} (\textit{DomU\_baremetal\_app.bin}). Xen proporciona las herramientas de espacio de usuario necesarias para gestionar los dominios no privilegiados. Con objeto de lanzar el DomU, es necesario introducir el siguiente comando de \textit{shell}:
+
+\begin{lstlisting}[style=CStyle]
+root@ultrazed_hyp_1:~# xl create DomU.cfg
+Parsing config from DomU.cfg
+root@ultrazed_hyp_1:~#
+\end{lstlisting}
+
+En este momento, el la \acrshort{UART}1 empiezan a aparecer los mensajes de la aplicación baremetal del DomU, que tienen en siguiente aspecto:
+
+\begin{lstlisting}[style=CStyle]
+Xen IRQ Test ...
+[1] t1 4999778 t2 4999562 taux 216
+[2] t1 4999778 t2 4999560 taux 218
+[3] t1 4999774 t2 4999558 taux 216
+[4] t1 4999775 t2 4999560 taux 215
+[5] t1 4999779 t2 4999562 taux 217
+[6] t1 4999776 t2 4999559 taux 217
+[7] t1 4999776 t2 4999560 taux 216
+(...)
+\end{lstlisting}
+
+Xen, al igual que Jailhouse, dispone de una serie de comandos para gestionar los dominios no privilegiados desde el Dom0. Entre ellos se encuentra por ejemplo, el comando que lista los dominios que están activos en el sistema:
+
+\begin{lstlisting}[style=CStyle]
+root@ultrazed_hyp_1:~# xl list
+Name                             ID   Mem VCPUs      State   Time(s)
+Domain-0                          0   768     1     r-----      10.5
+DomU                              1     8     1     r-----      62.3
 \end{lstlisting}
