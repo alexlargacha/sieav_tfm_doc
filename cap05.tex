@@ -92,34 +92,34 @@ Los valores obtenidos en una muestra de 256 interrupciones aparecen en la tabla 
   \label{table:results_xen}
 \end{table}
 
-\pgfplotstableread[row sep=\\,col sep=&]{
-    interval & carT & carD & carR \\
-    0--2     & 1.2  & 0.1  & 0.2  \\
-    2--5     & 12.8 & 3.8  & 4.9  \\
-    5--10    & 15.5 & 10.4 & 13.4 \\
-    10--20   & 14.0 & 17.3 & 22.2 \\
-    20--50   & 7.9  & 21.1 & 27.0 \\
-    50+      & 3.0  & 22.3 & 28.6 \\
-    }\mydata
 
-\begin{tikzpicture}
+    \begin{tikzpicture}
     \begin{axis}[
-            ybar,
-            bar width=.5cm,
-            width=\textwidth,
-            height=.5\textwidth,
-            legend style={at={(0.5,1)},
-                anchor=north,legend columns=-1},
-            symbolic x coords={0--2,2--5,5--10,10--20,20--50,50+},
-            xtick=data,
-            nodes near coords,
-            nodes near coords align={vertical},
-            ymin=0,ymax=35,
-            ylabel={\%},
+        every axis plot post/.style={/pgf/number format/fixed},
+        ybar=5pt,
+        bar width=12pt,
+        %legend style={at={(0.5,1)},
+        x=3cm,
+        ymin=0,
+        axis on top,
+        ymax=12,
+        xtick=data,
+        enlarge x limits=0.2,
+        symbolic x coords={Mínimo,Media,Máximo,Desviación Típica},
+        restrict y to domain*=0:14, % Cut values off at 14
+        visualization depends on=rawy\as\rawy, % Save the unclipped values
+        after end axis/.code={ % Draw line indicating break
+                \draw [ultra thick, white, decoration={snake, amplitude=1pt}, decorate] (rel axis cs:0,1.05) -- (rel axis cs:1,1.05);
+            },
+        nodes near coords={%
+                \pgfmathprintnumber{\rawy}% Print unclipped values
+            },
+        axis lines*=left,
+        clip=false
         ]
-        \addplot table[x=interval,y=carT]{\mydata};
-        \addplot table[x=interval,y=carD]{\mydata};
-        \addplot table[x=interval,y=carR]{\mydata};
-        \legend{Trips, Distance, Energy}
+    \addplot coordinates {(Mínimo,360) (Media,360.08) (Máximo,380) (Desviación Típica,1.27)};
+    \addplot coordinates {(Mínimo,950) (Media,958.40) (Máximo,1050) (Desviación Típica,5.85)};
+    \addplot coordinates {(Mínimo,2130) (Media,2182.65) (Máximo,2320) (Desviación Típica,30.32)};
+    \legend{Baremetal, Jailhouse, Xen};
     \end{axis}
-\end{tikzpicture}
+    \end{tikzpicture}
