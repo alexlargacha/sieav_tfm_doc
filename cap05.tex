@@ -105,6 +105,9 @@ En el caso de Xen, los resultados obtenidos de la prueba definida en la sección
 \end{table}
 
 \section{Resumen de resultados}
+
+La figura \ref{fig:resultados:all} muestra los resultados expuestos en las secciones anteriores a modo comparativo.\\
+
 \pgfplotstableread[row sep=\\,col sep=&]{
     interval & carT & carD & carR \\
     Mínimo    & 360  & 950  & 2130  \\
@@ -114,49 +117,50 @@ En el caso de Xen, los resultados obtenidos de la prueba definida en la sección
 
 \pgfplotstableread[row sep=\\,col sep=&]{
     interval & carT & carD & carR \\
-    Desviación    & 1.27  & 5.85  & 30.32  \\
+    Desviación   & 1.27  & 5.85  & 30.32  \\
     }\mydatadesv
 
-
-\begin{minipage}[b]{.5\linewidth}
+\begin{figure}[!h]
+\begin{minipage}[b]{\linewidth}
   \begin{adjustbox}{width=\linewidth}
     \begin{tikzpicture}
       \begin{axis}[
-        every axis plot post/.style={/pgf/number format/fixed},
+        every axis plot post/.style={/pgf/number format/.cd, use comma, 1000 sep={}},
         ybar,
         symbolic x coords={Mínimo,Media,Máximo},
         xtick=data,
-        axis x line=bottom,
-        enlarge x limits=0.2,
+        axis x line*=bottom,
+        enlarge x limits=0.3,
         hide y axis,
         nodes near coords,
         ]
         \addplot table[x=interval,y=carT]{\mydatabig};
         \addplot table[x=interval,y=carD]{\mydatabig};
         \addplot table[x=interval,y=carR]{\mydatabig};
+
+      \end{axis}
+    \end{tikzpicture}
+    \begin{tikzpicture}
+      \begin{axis}[
+        every axis plot post/.style={/pgf/number format/.cd, use comma, 1000 sep={}},
+        ybar,
+        symbolic x coords={Desviación},
+        xtick=data,
+        hide y axis,
+        axis x line*=bottom,
+        enlarge x limits=0.3,
+        ytick=\empty,
+        nodes near coords,
+        legend style={at={(0,0.6)},anchor=south west},
+        ]
+        \addplot table[x=interval,y=carT]{\mydatadesv};
+        \addplot table[x=interval,y=carD]{\mydatadesv};
+        \addplot table[x=interval,y=carR]{\mydatadesv};
         \legend{Baremetal, Jailhouse, Xen}
       \end{axis}
     \end{tikzpicture}
   \end{adjustbox}
 \end{minipage}
-
-\begin{minipage}[b]{.5\linewidth}
-  \begin{adjustbox}{width=\linewidth}
-    \begin{tikzpicture}
-      \begin{axis}[
-        ybar,
-        symbolic x coords={Desviación},
-        xtick=data,
-        hide y axis,
-        axis x line=bottom,
-        ytick=\empty,
-        nodes near coords,
-        ]
-        \addplot table[x=interval,y=carT]{\mydatadesv};
-        \addplot table[x=interval,y=carD]{\mydatadesv};
-        \addplot table[x=interval,y=carR]{\mydatadesv};
-        %\legend{Baremetal, Jailhouse, Xen}
-      \end{axis}
-    \end{tikzpicture}
-  \end{adjustbox}
-\end{minipage}
+\caption{Resumen de resultados}
+\label{fig:resultados:all}
+\end{figure}
