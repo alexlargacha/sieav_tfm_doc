@@ -1,7 +1,7 @@
 \chapter{Jailhouse y Xen en UltraZed}
 
 \section{Jailhouse}
-Como se ha expuesto anteriormente, la denominación de Jailhouse es la de un \textit{hipervisor de particionamiento basado en Linux} \cite{jailhouse_github}. Es capaz de ejecutar programas baremetal junto con sistemas operativos guest y siempre partiendo desde Linux. Con este propósito, empleando las extensiones de virtualización del microprocesador en cuestión, configura una serie de celdas que no pueden interferirse entre ellas.\\
+Como se ha expuesto anteriormente, la denominación de Jailhouse es la de un \textit{hipervisor de particionamiento basado en Linux} \cite{jailhouse_github}. Es capaz de ejecutar programas baremetal junto con sistemas operativos guest y siempre partiendo desde Linux. Con este propósito, empleando las extensiones de virtualización del microprocesador en cuestión, configura una serie de celdas de forma que no pueden interferirse entre ellas.\\
 Una vez que Jailhouse está activado, toma el control absoluto del harwdare que tiene debajo. Necesita de un sistema operativo Linux que lo cargue y sus herramientas de control de celdas están basadas también en Linux.
 
 \subsection{Compilación de Jailhouse}
@@ -9,9 +9,9 @@ El código fuente del proyecto Jailhouse está alojado en \cite{jailhouse_github
 Desde el punto de vista de Linux, Jailhouse es un módulo del kernel (extensión .ko). En el momento que se carga el módulo, Jailhouse inserta el firmware del propio hipervisor en una zona de memoria reservada en arranque y crea el dispositivo \textit{/dev/jailhouse} en el sistema. Este dispositivo es el que utilizan las herramientas de gestión de Jailhouse que se ejecutan desde Linux para interactuar con el hipervisor y crear, arrancar, parar y destruir los sistemas guest o celdas.\\
 
 El proceso de creación del propio módulo de Jailhouse necesita una serie de herramientas de compilación cruzada para la arquitectura de la plataforma que se está utilizando y también necesita el código fuente del kernel de Linux en el que se va a instalar como módulo.\\
-En el anexo \ref{petalinux} se detalla el proceso de configuración y generación de un proyecto PetaLinux basado en la plataforma anteriormente descrita. Petalinux proporciona el compilador, linker, etc. necesarios a la hora de generar software para la arquitectura ARMv8 y el proceso de construcción del proyecto requiere del código fuente del kernel a fin de generar la imagen que de ejecutará en la tajeta Ultrazed\texttrademark.\\
+En el anexo \ref{petalinux} se detalla el proceso de configuración y generación de un proyecto PetaLinux basado en la plataforma anteriormente descrita. Petalinux proporciona el compilador, linker, etc. necesarios a la hora de generar software para la arquitectura ARMv8. El proceso de construcción del proyecto requiere del código fuente del kernel a fin de generar la imagen que de ejecutará en la tajeta Ultrazed\texttrademark.\\
 
-Con todos estos elementos, lo único que hay que hacer para compilar Jailhouse para la arquitectura destino y el kernel de Linux generado con PetaLinux es ejecutar los siguientes commandos el la \textit{shell}
+Con todos estos elementos, lo único que hay que hacer para compilar Jailhouse para la arquitectura destino y el kernel de Linux generado con PetaLinux es ejecutar los siguientes commandos el la \textit{shell}:
 
 \begin{lstlisting}[style=CStyle]
   $ git clone git@github.com:siemens/jailhouse.git
@@ -47,7 +47,7 @@ drwxrwxr-x  3 alex alex 12288 Jul 21 19:06 arm64
 drwxrwxr-x  2 alex alex  4096 Jun 29 20:03 x86
 \end{lstlisting}
 
-Para cada arquitectura existe un fichero \textit{.c} por cada celda del sistema. La celda Linux llamada \textit{root cell} siempre está presente y para cada caso de tarjeta existen diferentes celdas de referencia dependiendo de la aplicación. El resto de celdas reciben el nombre de \textit{inmate}. Si para una tarjeta en concreto existe la celda Linux y otras dos celdas \textit{inmate}, aparecerán tres ficheros; cada uno con la definición de una celda. Por ejemplo para la tarjeta Ultra96 (\url{https://www.96boards.org/product/ultra96/}) existen los siguientes ficheros:
+Para cada arquitectura existe un fichero \textit{.c} por cada celda del sistema. La celda Linux llamada \textit{root cell} siempre está presente y para cada caso de tarjeta existen diferentes celdas de referencia dependiendo de la aplicación. El resto de celdas reciben el nombre de \textit{inmate}. Si para una tarjeta en concreto existe la celda Linux y otras dos celdas \textit{inmate}, aparecerán tres ficheros; cada uno con la definición de una celda. Por ejemplo para la tarjeta Ultra96 \cite{ultra96_url} existen los siguientes ficheros:
 
 \begin{lstlisting}[style=CStyle]
 alex@xubuntu16:~/workspace/ehu-upv/jailhouse/configs$ ls -la arm64/ultra96*
@@ -57,7 +57,7 @@ alex@xubuntu16:~/workspace/ehu-upv/jailhouse/configs$ ls -la arm64/ultra96*
 \end{lstlisting}
 
 Al compilar Jailhouse se genera un fichero con extensión \textit{.cell} por cada \textit{.c}. Los ficheros \textit{.cell} son los que utiliza la herramienta de gestión de sistemas guest desde la celda Linux.\\
-En el momento de elaborar el presente TFM la tarjeta UltraZed\texttrademark no estaba entre la lista de plataformas soportadas y probadas de Jailhouse por lo que no existía ningún fichero de celda para la misma. Como ya se ha comentado anteriormente, al incluir un chip de la misma familia que la tarjeta Xilinx ZCU102 y la Ultra96, se consideró que la adaptación sería posible por lo que se han creado los ficheros correspondientes a la \textit{root cell} y a la celda con la aplicación baremetal de la forma que se describe en los siguientes apartados.
+En el momento de elaborar el presente TFM la tarjeta UltraZed\texttrademark no estaba entre la lista de plataformas soportadas y probadas de Jailhouse por lo que no existía ningún fichero de celda para la misma. Como ya se ha comentado anteriormente, al incluir un chip de la misma familia que la tarjeta Xilinx ZCU102 y la Ultra96, se consideró que la adaptación sería factible por lo que se han creado los ficheros correspondientes a la \textit{root cell} y a la celda con la aplicación baremetal de la forma que se describe en los siguientes apartados.
 
 \subsubsection{Celda Linux}
 
@@ -79,7 +79,7 @@ struct {
 
 La estructura principal que define el sistema tiene los siguientes campos:
 \begin{itemize}
-  \item Cabecera: en este campo se especifican las direciones físicas de memoria de los componentes que necesita configurar Jailhouse. Todas estas direcciones corresponden al mapa de memoria del Zynq\textregistered UltraScale+\texttrademark MPSoC \cite{mpsoc_registers}.\\
+  \item Cabecera: en este campo se especifican las direcciones físicas de memoria de los componentes que necesita configurar Jailhouse. Todas estas direcciones corresponden al mapa de memoria del Zynq\textregistered UltraScale+\texttrademark MPSoC \cite{mpsoc_registers}.\\
   \begin{lstlisting}[style=CStyle]
   (...)
   .header = {
@@ -185,7 +185,7 @@ La estructura principal que define el sistema tiene los siguientes campos:
   \end{lstlisting}
   Aparecen por ejemplo los periféricos de la zona de \acrshort{PL} que están mapeados en memoria al estar conectados mediante el bus \acrshort{AXI}. También las zonas de \acrshort{RAM} que no están ocupadas por el hipervisor.
 
-  \item Interrupciones: en el campo \textit{irqchips} se definen las interrupciones que va manejar la celda en cuestion.
+  \item Interrupciones: en el campo \textit{irqchips} se definen las interrupciones que va manejar la celda en cuestión.
   \begin{lstlisting}[style=CStyle]
   (...)
   .irqchips = {
@@ -270,12 +270,12 @@ Lo único que se necesita definir en la celda \textit{inmate} que aloja la aplic
 \end{lstlisting}
 
 De estas secciones, cabe destacar la parte en la que se le asignan a la celda solo las regiones de memoria correspondientes a los periféricos de \acrshort{PL} y \acrshort{UART} que va a manejar el programa.\\
-En cuanto a las interrupciones, en el campo \textit{pin\_bitmap} dentro de \textit{irqchips} solo se activan los flags correspondientes a las interupciones número 54 y 136, \acrshort{UART} 1 y \acrshort{PL}-\acrshort{PS} Grupo 1 interrupción 0 respectivamente \cite{mpsoc_registers}.\\
+En cuanto a las interrupciones, en el campo \textit{pin\_bitmap} dentro de \textit{irqchips} solo se activan los flags correspondientes a las interrupciones número 54 y 136, \acrshort{UART} 1 y \acrshort{PL}-\acrshort{PS} Grupo 1 interrupción 0 respectivamente \cite{mpsoc_registers}.\\
 En el campo \textit{cpus} aparece el valor 0x8 (1000b) lo que indica que esta celda va a tener asignado el núcleo con identificador 3 (los identificador van de 0 a 3 para los 4 núcleos Cortex-A53).
 
 \subsubsection{Aplicación baremetal} \label{jailhouse:app_baremetal}
 
-Jailhouse proporciona una serie de funciones genéricas de configuración del sistema para poder ser utilizadas por las celdas \textit{inmates} en el directorio \textit{inmates/lib}. Aquí se encuentran por ejemplo la API para configurar el \acrshort{GIC}, Timer o \acrshort{UART}. Tomando como referencia el ejemplo existente para el manejo de la interrupción del temporizador privado de ARM (número 27) se ha desarrollado la aplicación que responde a la interupción 136 producida por un cambio en los valores del switch conectado a \acrshort{PL} descrito en la sección \ref{vivado_config}.
+Jailhouse proporciona una serie de funciones genéricas de configuración del sistema para poder ser utilizadas por las celdas \textit{inmates} en el directorio \textit{inmates/lib}. Aquí se encuentran por ejemplo la API para configurar el \acrshort{GIC}, Timer o \acrshort{UART}. Tomando como referencia el ejemplo existente para el manejo de la interrupción del temporizador privado de ARM (número 27) se ha desarrollado la aplicación que responde a la interrupción 136 producida por un cambio en los valores del switch conectado a \acrshort{PL} descrito en la sección \ref{vivado_config}.
 
 En el código resultante se inicializan los dispositivos que se van a utilizar en el bucle principal y se atiene a la interrupción en la función \textit{handle\_IRQ}:
 \begin{lstlisting}[style=CStyle]
@@ -351,7 +351,9 @@ La tarjeta electrónica se va a arrancar con los binarios generados en el proyec
 };
 \end{lstlisting}
 
-El primer paso para probar la respuesta de la aplicación baremetal descrita en la sección \ref{jailhouse:app_baremetal} es copiar en la plataforma destino los ficheros compilados de las definiones de celdas y el binario de la aplicación. En el caso de las celdas creadas para la tarjeta UltraZed\texttrademark son: \textit{ultrazed\_ehu.cell}, \textit{ultrazed\_ehu\_irq.cell} y \textit{irq\_demo.bin}.
+\textbf{Primer paso}\\
+A fin de probar la respuesta de la aplicación baremetal descrita en la sección \ref{jailhouse:app_baremetal} es necesario copiar en la plataforma destino los ficheros compilados de las definiciones de celdas y el binario de la aplicación. En el caso de las celdas creadas para la tarjeta UltraZed\texttrademark son: \textit{ultrazed\_ehu.cell}, \textit{ultrazed\_ehu\_irq.cell} y \textit{irq\_demo.bin}.\\
+El commando \textit{jailhouse enable} configura la \textit{root cell} según la definición del fichero \textit{ultrazed\_ehu.cell}. En este momento lo que ocurre es que se carga el \textit{firmware} de Jailhouse en la dirección especificada para el hipervisor y a continuación crea una celda para alojar el sistema Linux que hasta ahora estaba ejecutándose de manera nativa.\\
 
 \begin{lstlisting}[style=CStyle]
 root@ultrazed_hyp_1:~# jailhouse enable ultrazed_ehu.cell
@@ -371,10 +373,12 @@ Activating hypervisor
 [  496.674646] The Jailhouse is opening.
 \end{lstlisting}
 
-El commando \textit{jailhouse enable} lo que hace es configurar la \textit{root cell} con la definición del fichero \textit{ultrazed\_ehu.cell}. En este momento lo que ocurre es que se carga el \textit{firmware} de Jailhouse en la dirección especificada para el hipervisor y a continuación crea una celda para alojar el sistema Linux que hasta ahora estaba ejecutándose de manera nativa. Esta \textit{root cell} a partir de este momento ya se ejecuta como un sistema guest. A partir de este momento la gestión de las celdas se realiza con la aplicación que se ejecuta en espacio de usuario de la \textit{root cell}. Esta herramienta se comunica con el hipervisor a través de commandos \textit{ioctl()} hacia el dispositivo \textit{/dev/jailhouse} que se ha creado al insertar el módulo \textit{jailhouse.ko}.
+
+ Esta \textit{root cell}, a partir de este momento ya se ejecuta como un sistema guest. De aquí en adelante, la gestión de las celdas se realiza con la aplicación que se ejecuta en espacio de usuario de la \textit{root cell}. Esta herramienta se comunica con el hipervisor a través de commandos \textit{ioctl()} hacia el dispositivo \textit{/dev/jailhouse} que se ha creado al insertar el módulo \textit{jailhouse.ko}.
 Como se puede observar en un principio los 4 núcleos están destinados a la \textit{root cell} y se configuran las zonas de memoria y las interrupciones.\\
 
-En el siguiente comando se crea la celda para alojar la aplicación baremetal:
+\textbf{Segundo paso}\\
+En el siguiente comando se crea la celda para alojar la aplicación baremetal:\\
 
 \begin{lstlisting}[style=CStyle]
 root@ultrazed_hyp_1:~# jailhouse cell create ultrazed_ehu_irq.cell
@@ -387,12 +391,14 @@ Page pool usage after cell creation: mem 80/4067, remap 5/131072
 
 Al haber asignado el núcleo con identificador 3 a la celda, Jailhouse lo que hace es quitarle ese recurso a la celda Linux que era la que lo mantenía hasta el momento. A su vez el hipervisor asigna las zonas de memoria e interrupciones definidas para la celda guest haciendo que desde ese momento no estén disponibles para ninguna celda más.\\
 
-Con el objetivo de cargar en memoria asignada a la celda la propia aplicación, se ejecuat el siguiente comando.
+\textbf{Tercer paso}\\
+Con el objetivo de cargar en memoria asignada a la celda la propia aplicación, se ejecuta el siguiente comando.
 \begin{lstlisting}[style=CStyle]
 root@ultrazed_hyp_1:~# jailhouse cell load 1 irqbutton_demo.bin
 Cell "gpio-irq-demo" can be loaded
 \end{lstlisting}
 
+\textbf{Cuarto paso}\\
 El último de los comandos es el que lanza la ejecución del la aplicación baremetal:
 \begin{lstlisting}[style=CStyle]
 root@ultrazed_hyp_1:~# jailhouse cell start 1
@@ -401,7 +407,7 @@ Started cell "gpio-irq-demo"
 
 Este proceso es el que aparece representado a nivel de bloques en la figura \ref{fig:jail_2}.\\
 
-En el caso de la aplicación desarrollada, simplemente se atienden a las interrupciones producidas por un bloque \acrshort{AXI} \acrshort{GPIO}, se mide la latencia mediante un temporizador y se muestra en pantalla. La salida de mensajes de la celda baremetal se produce por la \acrshort{UART}1, que es distinta a la que utilza la \textit{root cell}.
+En el caso de la aplicación desarrollada, simplemente se atienden a las interrupciones producidas por un bloque \acrshort{AXI} \acrshort{GPIO}, se mide la latencia mediante un temporizador y se muestra en pantalla. La salida de mensajes de la celda baremetal se produce por la \acrshort{UART}1, que es distinta a la que utiliza la \textit{root cell}.
 
 \begin{lstlisting}[style=CStyle]
 Jailhouse IRQ lattency test ...
@@ -428,9 +434,10 @@ Xen es el hipervisor que Xilinx tiene integrado en su herramientas de desarrollo
 
 \subsection{Compilación de Xen} \label{xen_compilacion}
 
-El código fuente de Xen se encuentra alojado oficialmente en \cite{xen_source}. Xilinx, al igual que hace con el kernel de Linux y con el cargador de arramque U-Boot, mantiene un repositorio público separado donde controla la versión de Xen que acompaña cada lanzamiento oficial de sus herramientas \cite{xen_source_xilinx}. La versión de Xen liberada con PetaLinux 2018.3 es la 4.11.\\
+El código fuente de Xen se encuentra alojado oficialmente en \cite{xen_source}. Xilinx, al igual que hace con el kernel de Linux y con el cargador de arranque U-Boot, mantiene un repositorio público separado donde controla la versión de Xen que acompaña cada lanzamiento oficial de sus herramientas \cite{xen_source_xilinx}. La versión de Xen liberada con PetaLinux 2018.3 es la 4.11.\\
 La generación de los binarios de Xen está incluida en el proceso de PetaLinux, pero no está habilitada por defecto. Para ello, se deben ejecutar los siguientes comandos:\\
-Seleccionar Xen dentro dentro del grupo de paquetes a incluir en el sistema de ficheros.
+
+Seleccionar Xen dentro del grupo de paquetes a incluir en el sistema de ficheros.
 \begin{lstlisting}[style=CStyle]
 $ petalinux-config -c rootfs
 \end{lstlisting}
@@ -447,7 +454,7 @@ Petalinux Package Groups  ---> packagegroup-petalinux-xen   --->  [*] packagegro
   \label{fig:xen_menuconfig_1}
 \end{figure*}
 
-Una vez se ha habilitada esta opción, guardar la configuración y salir. Es necesario reconstruir el proyecto con el comando:
+Una vez se ha habilitado esta opción, guardar la configuración y salir. Es necesario reconstruir el proyecto con el comando:
 \begin{lstlisting}[style=CStyle]
 $ petalinux-buid
 \end{lstlisting}
@@ -466,7 +473,7 @@ $ mkimage -A arm -C none -T kernel -a 0x0200000 -e 0x00200000 -n Xen -d xen/xen 
 \subsection{Configuración de dominios}
 \subsubsection{Dom0 Linux} \label{xen_dom0_config}
 
-El Dom0 Linux que se va utilizar es prácticamente el mismo que se ejecutaría nativamente con los binarios generados con PetaLinux. Únicamente mediante unos nodos en el \textit{device-tree}, se definen los parámetros necesarios para arrancar Xen y Linux como Dom0. Estos parámetros se recogen en un fichero \textit{xen.dtsi} que es necesario incluir. Dentro del proyecto PetaLinux, el fichero \textit{project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi} debe contener lo siguiente en el inicio:
+El Dom0 Linux que se va utilizar es prácticamente el mismo que se ejecutaría nativamente con los binarios generados con PetaLinux. Mediante unos nodos en el \textit{device-tree}, se definen los parámetros necesarios para arrancar Xen y Linux como Dom0. Estos parámetros se recogen en un fichero \textit{xen.dtsi} que es necesario incluir. Dentro del proyecto PetaLinux, el fichero \textit{project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi} debe contener lo siguiente en el inicio:
 
 \begin{lstlisting}[style=CStyle]
 /include/ "system-conf.dtsi"
@@ -545,7 +552,7 @@ Por último, aparecen los dispositivos existentes en el \textit{device-tree} que
 (...)
 \end{lstlisting}
 
-A fin de que la inclusión del fichero \textit{xen.dtsi} tenga efecto, se contruye el \textit{device-tree} de nuevo.
+A fin de que la inclusión del fichero \textit{xen.dtsi} tenga efecto, se construye el \textit{device-tree} de nuevo.
 
 \begin{lstlisting}[style=CStyle]
 $ petalinux-buid -c device-tree
@@ -555,7 +562,7 @@ El proceso de generación del \textit{device-tree} produce un fichero con extens
 
 \subsubsection{DomU baremetal}
 
-Xen necista un fichero de configuración para la ejecutar dominios no privilegiados. En dicho fichero se indican los parámetros que definen el DomU. En este caso, la definición que se ha utilizado se muestra a continuacion:
+Xen necesita un fichero de configuración para la ejecutar dominios no privilegiados. En dicho fichero se indican los parámetros que definen el DomU. En este caso, la definición que se ha utilizado se muestra a continuación:
 
 \begin{lstlisting}[style=CStyle]
 #Guest name
@@ -572,13 +579,13 @@ irqs = [ 54, 136 ]
 iomem = [ "0xff010,1", "0xA0000,1", "0xA0001,1", "0xA0002,1", "0xA0003,1" "0xA0004,1" ]
 \end{lstlisting}
 
-Como se observa en las primeras líneas, es necesario especificar el nombre del fichero binario que contiene la aplicación así como el tamaño del espacio de memoria que se le asigna para su ejecución. En este caso la aplicación ocupa unos pocos kilobytes, así que los 8 MB reservados son suficientes. En los siguientes parámetros se indica el número de CPUs virtuales (\textit{vcpu}) con las que se inicia el DomU y si se asigna específicamente alguno de los nucleos (\textit{cpu}). Este último parámetro es opcional. Al haber definido \textit{vpcu} y \textit{cpu}, ambos con valor 1, implica que se mapea específicamente la \textit{vcpu} con identificador 0 al núcleo con identificador 1. Estos parámetros admiten múltimples combinaciones que quedan fuera del alcance del presente trabajo.\\
-En cuanto a las interrupciones, al igual que en la celda \textit{inmate} de Jailhouse de la sección \ref{jailhouse:baremetal}, se le indica a Xen que las interrupciones con números 54 (\acrshort{UART}1) y 136 (\acrshort{PL} a \acrshort{PS} grupo 1) deben ser redirigidas a el DomU.\\
-Por último, en \textit{iomem} se definen las zonas de memoria que va a manejar directamente el DomU. En este caso se trata de la propia \acrshort{UART}1, los bloques de \acrshort{GPIO} y temporizadores inlcuidos en \acrshort{PL}.
+Como se observa en las primeras líneas, es necesario especificar el nombre del fichero binario que contiene la aplicación así como el tamaño del espacio de memoria que se le asigna para su ejecución. En este caso la aplicación ocupa unos pocos kilobytes, así que los 8 MB reservados son suficientes. En los siguientes parámetros se indica el número de CPUs virtuales (\textit{vcpu}) con las que se inicia el DomU y si se asigna específicamente alguno de los núcleos (\textit{cpu}). Este último parámetro es opcional. Al haber definido \textit{vpcu} y \textit{cpu}, ambos con valor 1, implica que se mapea específicamente la \textit{vcpu} con identificador 0 al núcleo con identificador 1. Estos parámetros admiten múltiples combinaciones que quedan fuera del alcance del presente trabajo.\\
+En cuanto a las interrupciones, al igual que en la celda \textit{inmate} de Jailhouse de la sección \ref{jailhouse:baremetal}, se le indica a Xen que las interrupciones con números 54 (\acrshort{UART}1) y 136 (\acrshort{PL} a \acrshort{PS} grupo 1) deben ser redirigidas al DomU.\\
+Por último, en \textit{iomem} se definen las zonas de memoria que va a manejar directamente el DomU. En este caso se trata de la propia \acrshort{UART}1, los bloques de \acrshort{GPIO} y temporizadores incluidos en \acrshort{PL}.
 
 \subsubsection{Aplicación baremetal} \label{subsect:xen_app_baremetal}
 
-Mediante el entorno de desarrollo \acrshort{XSDK} de Xilinx se pueden crear aplicaciones baremetal para ser lanzadas como DomU en Xen \cite{xen_domU_xsdk}. Como se muestra en la figura \ref{fig:domU_xsdk_1}, a nivel de configuración, la única diferencia con una aplicación baremetal que no esté destinada a ejecutarse con un hipervisor por debajo, es la indicación de que debe lanzarse con el nivel de excepción EL1 (\textit{hypervisor guest: yes}).
+Mediante el entorno de desarrollo \acrshort{XSDK} de Xilinx se pueden crear aplicaciones baremetal para ser lanzadas como DomU en Xen \cite{xen_domU_xsdk}. Como se muestra en la figura \ref{fig:domU_xsdk_1}, a nivel de configuración, la única diferencia con una aplicación baremetal que no esté destinada a ejecutarse con un hipervisor por debajo, es la indicación de que debe lanzarse con el nivel de excepción EL1 (\textit{hypervisor guest: yes}).\\
 
 \begin{figure*}[!h]
 	\centering
@@ -587,11 +594,11 @@ Mediante el entorno de desarrollo \acrshort{XSDK} de Xilinx se pueden crear apli
 	\label{fig:domU_xsdk_1}
 \end{figure*}
 
-Realmente, la opción de ejecutarse en EL1 tiene más implicaciones a nivel de software pero la herramienta de Xilinx abstrae de las mismas al desarrolador. Cuando se genera una aplicación en \acrshort{XSDK} se necesita un \acrshort{BSP}. En el caso de Xilinx, existen \acrshort{BSP}s que incluyen la inicialización a bajo nivel de los procesadores, así como los drivers de manejo de los dispositivos inluidos es las arquitecturas Zynq-7000 y MPSoC.\\
+Realmente, la opción de ejecutarse en EL1 tiene más implicaciones a nivel de software pero la herramienta de Xilinx abstrae de las mismas al desarrollador. Cuando se genera una aplicación en \acrshort{XSDK} se necesita un Board Support Package (\acrshort{BSP}). En el caso de Xilinx, existen \acrshort{BSP}s que incluyen la inicialización a bajo nivel de los procesadores, así como los drivers de manejo de los dispositivos incluidos es las arquitecturas Zynq-7000 y MPSoC.\\
 A la hora de crear una nueva aplicación, si no existe el correspondiente \acrshort{BSP}, la herramienta lo genera automáticamente. En un \acrshort{BSP}s generado para un DomU que va a ejecutarse sobre un hipervisor, se incluyen en el código las llamadas al hipervisor (\textit{hvc} en ARMv8) o \textit{hypercalls} mencionadas en el capítulo \ref{ch:introduccion:primera}.\\
 
 La aplicación desarrollada está basada en uno de los ejemplos de Xilinx para manejo de interrupciones y sigue los mismos pasos que la celda \textit{inmate} de Jailhouse.
-Primero habilita los temporizadores incluídos en la zona de \acrshort{PL}. Uno de ellos de utiliza para generar la señal \acrshort{PWM} que provoca las interrupciones del bloque \acrshort{GPIO} y el otro se configura para capturar los instantes en los que se produce la interrupción y el tiempo que se tarda en atenderla desde la correspondiente \acrshort{ISR}.
+Primero habilita los temporizadores incluidos en la zona de \acrshort{PL}. Uno de ellos de utiliza para generar la señal \acrshort{PWM} que provoca las interrupciones del bloque \acrshort{GPIO} y el otro se configura para capturar los instantes en los que se produce la interrupción y el tiempo que se tarda en atenderla desde la correspondiente \acrshort{ISR}.
 
 \begin{lstlisting}[style=CStyle]
 (...)
@@ -641,7 +648,7 @@ void GpioHandler(void *CallbackRef)
 }
 \end{lstlisting}
 
-Por último, en el bucle principal del programa, se espera a que se active \textit{IntrFlag} para leer del temporizador de captura los valores correspondietes para calcular la latencia de la interuupción:
+Por último, en el bucle principal del programa, se espera a que se active \textit{IntrFlag} para leer del temporizador de captura los valores correspondientes para calcular la latencia de la interrupción:
 
 \begin{lstlisting}[style=CStyle]
 (...)
@@ -664,7 +671,7 @@ Al compilar este código, la herramienta \acrshort{XSDK} genera el fichero \text
 
 \subsection{Test Dom0 Linux + DomU baremetal} \label{section:text_xen}
 
-En el caso de Xen, la secuencia de arranque de la tarjeta electrónica difiere en el orden de los elementos respecto a Jailhouse. En este caso, el cargador de arranque U-Boot lanza directamente el firmware de Xen y desde aquí, se lanza el Dom0. Es necesario cargar en memoria, el binario de Xen generado en la sección \ref{xen_compilacion}, así como el \textit{device-tree} de la sección \ref{xen_dom0_config}, y la imagen del kernel de Linux del anexo \ref{petalinux}. Desde la consola de U-Boot, se situan los ficheros en las posiciones de memoria 0x1030000, 0x1000000 y 0x80000 respectivamente. Se pueden cargar los ficheros en esas posiciones ya sea por \acrshort{JTAG}, leyendo dede la tarjeta microSD o \acrshort{eMMC} o bien mediante tftp.
+En el caso de Xen, la secuencia de arranque de la tarjeta electrónica difiere en el orden de los elementos respecto a Jailhouse. En este caso, el cargador de arranque U-Boot lanza directamente el firmware de Xen y desde aquí, se lanza el Dom0. Es necesario cargar en memoria, el binario de Xen generado en la sección \ref{xen_compilacion}, así como el \textit{device-tree} de la sección \ref{xen_dom0_config}, y la imagen del kernel de Linux del anexo \ref{petalinux}. Desde la consola de U-Boot, se sitúan los ficheros en las posiciones de memoria 0x1030000, 0x1000000 y 0x80000 respectivamente. Se pueden cargar los ficheros en esas posiciones ya sea por \acrshort{JTAG}, leyendo dede la tarjeta microSD o \acrshort{eMMC}, o bien mediante \acrshort{TFTP}.
 Con estos elementos se lanza el arranque de la siguiente forma desde la consola de U-Boot:
 
 \begin{lstlisting}[style=CStyle]
@@ -722,7 +729,7 @@ Starting kernel ...
 (XEN) Brought up 4 CPUs
 \end{lstlisting}
 
-Una vez Xen ha arrancado, procecede a lanzar el Dom0, en este caso Linux, tal y como se ha indicado en la descripción del fichero \textit{xen.dtsi} en la sección \ref{xen_dom0_config}.\\
+Una vez Xen ha arrancado, procede a lanzar el Dom0, en este caso Linux, tal y como se ha indicado en la descripción del fichero \textit{xen.dtsi} en la sección \ref{xen_dom0_config}.\\
 Una vez arrancado el Dom0, se copia el fichero de configuración del DomU (\textit{DomU.cfg}) y el fichero binario con la aplicación baremetal compilada con \acrshort{XSDK} (\textit{DomU\_baremetal\_app.bin}). Xen proporciona las herramientas de espacio de usuario necesarias para gestionar los dominios no privilegiados. Con objeto de lanzar el DomU, es necesario introducir el siguiente comando de \textit{shell}:
 
 \begin{lstlisting}[style=CStyle]
