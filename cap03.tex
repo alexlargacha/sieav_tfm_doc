@@ -75,26 +75,18 @@ Con objeto de medir con precisión la latencia introducida se ha utilizado un bl
 
 El bloque \acrshort{AXI} \acrshort{GPIO} con nombre \textit{axi\_gpio\_1} tiene su salida conectada a los diodos LED conectados a \acrshort{PL} disponibles en la UltraZed. Estos LEDs se han utilizado simplemente como instrumento de verificación visual de que se están ejecutando los programas como se espera.\\
 
-También se ha utilizado uno de los conectores \acrshort{PMOD} para poder monitorizar las señales en curso con un analizador lógico a fin de poder comprobar que los resultados obtenidos de la resta de tiempos en el Timer son coherentes.\\
+También se ha utilizado uno de los conectores \acrshort{PMOD} para poder monitorizar las señales en curso con un analizador lógico de 8 canales \cite{saleae} a fin de poder comprobar que los resultados obtenidos de la resta de tiempos en el Timer son coherentes.\\
 
-En la configuración de la zona de PS se han utilizado las definiciones de tarjeta que están alojadas en \cite{avnet_github}. Estas definiciones configuran el MPSoc para el \acrshort{SOM} de UltraZed\texttrademark que se está empleando.
+En la configuración de la zona de \acrshort{PS} se han utilizado las definiciones de tarjeta que están alojadas en el repositori de github \cite{avnet_github}. Estas definiciones configuran el MPSoc para el \acrshort{SOM} de UltraZed\texttrademark que se está empleando.\\
 
-\subsection{Otros}
-
-\begin{itemize}
-  \item Analizador lógico de 8 canales: con el objeto de realizar algunas medidas empíricas de tiempos de reacción de los hipervisores se ha utilizado como ayuda el analizador \cite{saleae}.\\
-  \\Algunas de las medidas se han realizado con temporizadores como se verá posteriormente. Aún así, el analizador ha servido de apoyo a la hora de comprobar que los resultados obtenidos de los temporizadores eran correctos.
-  \item Cable JTAG-HS2 \cite{jtag_hs2}: a fin de cargar de forma dinámica y depurar los programas que se han hecho se ha empleado un \textit{debugger} apto para productos de Xilinx.\\
-
-
-\end{itemize}
+Para cargar de forma dinámica y depurar los programas que se han hecho se ha empleado un cable JTAG-HS2 \cite{jtag_hs2} apto para productos de Xilinx.\\
 
 \section{Herramientas Software}
 
 A continuación se listan las herramientas software que se han empleado en la elaboración de los tests en los hipervisores Xen y Jailhouse. Para la plataforma electrónica seleccionada ha sido suficiente la licencia gratuita (WebPACK) que proporciona Xilinx.
 
 \begin{itemize}
-  \item Vivado Design Suite 2018.3 \cite{vivado_suite_2018_3}: este paquete de software de Xilinx es el que permite generar lo que se denomina la \textit{Hardware Platform} y exportarla a fin de poder crear proyectos de software sobre ella como se verá más adelante. Esta \textit{Hardware Platform} contiene tanto la parte de configuración de la parte de PS del Zynq\textregistered UltraScale+\texttrademark MPSoC como el bitstream que se programa en la zona \acrshort{PL}.\\
+  \item Vivado Design Suite 2018.3 \cite{vivado_suite_2018_3}: este paquete de software de Xilinx es el que permite generar lo que se denomina la \textit{Hardware Platform} y exportarla a fin de poder crear proyectos de software sobre ella como se verá más adelante. Esta \textit{Hardware Platform} contiene tanto la parte de configuración de la parte de \acrshort{PS} del Zynq\textregistered UltraScale+\texttrademark MPSoC como el bitstream que se programa en la zona \acrshort{PL}.\\
 
   \item Xilinx Software Development Kit (XSDK) 2018.3 \cite{xsdk_suite_2018_3}: la herramienta \acrshort{XSDK} es un entorno integrado de desarrollo basado en eclipse que permite desarrollar aplicaciones para ejecutarse sobre la plataforma generada por Vivado. Mediante un sencillo interfaz gráfico se pueden crear aplicaciones tanto baremetal, como FreeRTOS y Linux. Soporta todas las familias de microprocesadores existentes en las plataformas de Xilinx: MicroBlaze, ARM Cortex-R5, ARM Cortex-A9 y ARM Cortex-A53. Cabe destacar que también incorpora un sistema de depurado de software y herramientas de análisis de rendimiento.\\
 
