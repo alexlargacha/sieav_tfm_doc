@@ -105,34 +105,56 @@ En el caso de Xen, los resultados obtenidos de la prueba definida en la sección
 \end{table}
 
 \section{Resumen de resultados}
+\pgfplotstableread[row sep=\\,col sep=&]{
+    interval & carT & carD & carR \\
+    Mínimo    & 360  & 950  & 2130  \\
+    Media    & 360.08  & 958.40  & 2182.65  \\
+    Máximo    & 380  & 1050  & 2320  \\
+    }\mydatabig
 
+\pgfplotstableread[row sep=\\,col sep=&]{
+    interval & carT & carD & carR \\
+    Desviación    & 1.27  & 5.85  & 30.32  \\
+    }\mydatadesv
+
+
+\begin{minipage}[b]{.5\linewidth}
+  \begin{adjustbox}{width=\linewidth}
     \begin{tikzpicture}
-    \begin{axis}[
-        every axis plot post/.style={/pgf/number format/fixed},
-        ybar=5pt,
-        bar width=12pt,
-        %legend style={at={(0.5,1)},
-        x=3cm,
-        ymin=0,
-        axis on top,
-        ymax=12,
+      \begin{axis}[
+        ybar,
+        symbolic x coords={Mínimo,Media,Máximo},
         xtick=data,
-        enlarge x limits=0.2,
-        symbolic x coords={Mínimo,Media,Máximo,Desviación Típica},
-        restrict y to domain*=0:14, % Cut values off at 14
-        visualization depends on=rawy\as\rawy, % Save the unclipped values
-        after end axis/.code={ % Draw line indicating break
-                \draw [ultra thick, white, decoration={snake, amplitude=1pt}, decorate] (rel axis cs:0,1.05) -- (rel axis cs:1,1.05);
-            },
-        nodes near coords={%
-                \pgfmathprintnumber{\rawy}% Print unclipped values
-            },
-        axis lines*=left,
-        clip=false
+        axis y line=none,
+        axis x line=bottom,
+        nodes near coords,
         ]
-    \addplot coordinates {(Mínimo,360) (Media,360.08) (Máximo,380) (Desviación Típica,1.27)};
-    \addplot coordinates {(Mínimo,950) (Media,958.40) (Máximo,1050) (Desviación Típica,5.85)};
-    \addplot coordinates {(Mínimo,2130) (Media,2182.65) (Máximo,2320) (Desviación Típica,30.32)};
-    \legend{Baremetal, Jailhouse, Xen};
-    \end{axis}
+        \addplot table[x=interval,y=carT]{\mydatabig};
+        \addplot table[x=interval,y=carD]{\mydatabig};
+        \addplot table[x=interval,y=carR]{\mydatabig};
+        \legend{Baremetal, Jailhouse, Xen}
+      \end{axis}
     \end{tikzpicture}
+  \end{adjustbox}
+\end{minipage}
+
+\begin{minipage}[b]{.4\linewidth}
+  \begin{adjustbox}{width=\linewidth}
+    \begin{tikzpicture}
+      \begin{axis}[
+        ybar,
+        symbolic x coords={Desviación},
+        xtick=data,
+        axis y line=none,
+        axis x line=bottom,
+        ytick=\empty,
+        nodes near coords,
+        ]
+        \addplot table[x=interval,y=carT]{\mydatadesv};
+        \addplot table[x=interval,y=carD]{\mydatadesv};
+        \addplot table[x=interval,y=carR]{\mydatadesv};
+        %\legend{Baremetal, Jailhouse, Xen}
+      \end{axis}
+    \end{tikzpicture}
+  \end{adjustbox}
+\end{minipage}
