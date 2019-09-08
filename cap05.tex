@@ -10,11 +10,12 @@ El código fuente de esta aplicación es exactamente el mismo que el del DomU de
 \begin{itemize}
   \item Configuración de los siguientes elementos:
   \begin{itemize}
-    \item Temporizador en modo PWM a fin de generar una señal periódica de 50 ms de entrada al siguiente bloque como aparece en la figura \ref{fig:resultados:baremetal_1}.
+    \item Temporizador en modo \acrshort{PWM} a fin de generar una señal periódica de 50 ms, que servirá de entrada al siguiente bloque como aparece en la figura \ref{fig:resultados:baremetal_1}.
     \item Bloque \acrshort{GPIO} para generar una interrupción con cada cambio de estado en en la entrada.
     \item Bloque \acrshort{GPIO} que activa la captura indicando que la interrupción ha sido atendida.
-    \item Temporizador en modo captura con objeto guardar la referencia de tiempo del instante en el que se produce la interrupción y el instante en el que es atendida.
+    \item Temporizador en modo captura para guardar la referencia de tiempo del instante en el que se produce la interrupción y el instante en el que es atendida.
   \end{itemize}
+  \item Rutina de atención a la interrupción en la que se activa una salida del bloque \acrshort{GPIO}.
   \item Bucle principal en el que se accede a los registros del temporizador en modo captura para calcular la diferencia de tiempos.\\
 \end{itemize}
 
@@ -34,7 +35,7 @@ Al ejecutar la aplicación de refenrencia, como se puede observar en la figura \
   \label{fig:resultados:baremetal_2}
 \end{figure*}
 
-Los valores obtenidos en una muestra de 256 interrupciones aparecen en la tabla \ref{tbl:results_baremetal}. \\
+Los valores obtenidos en una muestra de 256 interrupciones aparecen en la tabla \ref{table:results_baremetal}. \\
 \begin{table}[!ht]
   \centering
 	\begin{tabular}{ |c|c|c|c| }
