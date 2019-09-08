@@ -2,13 +2,13 @@
 En esta sección se van a presentar algunos de los hipervisores más populares utilizados en sistemas embebidos y sus características principales, poniendo más énfasis en los casos de Xen y Jailhouse ya que se tratan de los hipervisores que se han utilizado para obtener los resultados del actual TFM. Estos dos últimos resultan de mayor interés debido a que son de código abierto, por lo que aparte de la documentación oficial, a veces un poco escasa en los proyectos de código abierto, exiten repositorios públicos con el código fuente. De esta forma, se puede realizar un mejor análisis de su estructura e incluso modificar partes de su código para adaptarlo a las necesidades del sistema.
 
 \section{OKL4 Hypervisor}
-OKL4 Hypervisor \cite{okl4} es un hipervisor de tipo 1 de los basados en micro-kernel. Fue desarrollado originalmente por OK Labs, la cual forma parte del conglomerado General Dynamics, aprovechando la experiencia en micro-kernels que habían desarrollado gracias al éxito comercial de otro de los productos de OK Labs, el micro-kernel seL4 \cite{seL4}. En su visión, no existían razones para no poder combinar en una única implementación un micro-kernel y un hipervisor. De echo, durante mucho tiempo, el OKL4 se denominó \textit{OKL4 Microvisor}.\\
-El objetivo es asistir a la virtualización con la mínima sobrecarga del sistema. De esa forma, el modelo propuesto se basa en los siguientes principios:
+OKL4 Hypervisor \cite{okl4} es un hipervisor de tipo 1 basado en micro-kernel. Fue desarrollado originalmente por OK Labs, actualmente parte del conglomerado General Dynamics. El diseño se aprovechó de la experiencia en micro-kernels que se había desarrollado gracias al éxito comercial de otro de los productos de OK Labs, el micro-kernel seL4 \cite{seL4}. En su visión, no existían razones para no poder combinar en una única implementación un micro-kernel y un hipervisor. De echo, durante mucho tiempo, el OKL4 se denominó \textit{OKL4 Microvisor}.\\
+El objetivo de OKL4 Hypervisor es asistir a la virtualización con la mínima sobrecarga del sistema. De esa forma, el modelo propuesto se basa en los siguientes principios:
 \begin{itemize}
   \item La abstracción del sistema que el hipervisor presenta a los sistemas operativos guest consta de una o varias CPUs virtuales (\acrshort{vCPU}), en las que poder desplegar las tareas requeridas por las aplicaciones de usuario.
   \item En el apartado de virtualización de memoria, el hipervisor proporciona una MMU virtual (\acrshort{vMMU}) con la que se mapea la memoria virtual de los sistemas guest en memoria física del sistema host.
-  \item La virtualización de los periféricos, se basa en el mapeo en memoria de registro de dispositivos virtuales y un sistema de interrupciones virtuales (\acrshort{vIRQ}).
-  \item La comunicacion entre sistemas guest se muestra como \acrshort{vIRQ}s (para sincronización) y canales. Los canales consisten en FIFOs bidireccionales con un tamaño fijo especificado en el espacio de usuario.
+  \item La virtualización de los periféricos, se basa en el mapeo en memoria de registros de dispositivos virtuales y un sistema de interrupciones virtuales (\acrshort{vIRQ}).
+  \item La comunicacion entre sistemas guest se proporciona mediante \acrshort{vIRQ}s (para sincronización) y canales. Los canales consisten en FIFOs bidireccionales con un tamaño fijo especificado en el espacio de usuario.
 \end{itemize}
 \begin{figure*}[!htb]
 	\centering
@@ -23,7 +23,7 @@ Este hipervisor tiene como uno de sus objetivos principales la seguridad \cite{o
 \section{WindRiver Hypervisor}
 El hipervisor de WindRiver \cite{windriver_1} es también de tipo 1 y particiona el software que se ejecuta en uno o varios núcleos, en múltiples tarjetas virtuales (Virtual Boards) con diferentes niveles de protección y características. Está optimizado para ejecutar sistemas operativos guest de propósito general (\acrshort{GPOS}), sistemas de tiempo real (\acrshort{RTOS}) y sistemas operativos para aplicaciones críticas de seguridad.
 \subsection{Virtual Boards}
-La división del sistema propuesta por WindRiver se basa en tarjetas virtuales o particiones. Cada una de ellas puede contener un sistema operativo guest con sus diferentes aplicaciones ejecutándose o un programa sin sistema operativo, lo que se denomina \textit{virtual board application}. El hipervisor es el encargado de controlar en qué núcleos se están ejecutando las virtual boards y las zonas de memoria a las que puede acceder. Una virtual board puede compartir un núcleo con otra virtual board, tener un núcleo dedicado, o utilizar varios al mismo tiempo.
+La división del sistema propuesta por WindRiver se basa en tarjetas virtuales o particiones. Cada una de ellas puede contener un sistema operativo guest con sus diferentes aplicaciones ejecutándose o un programa sin sistema operativo, lo que se denomina \textit{virtual board application} (figura \ref{fig:windriver_hyp}). El hipervisor es el encargado de controlar en qué núcleos se están ejecutando las virtual boards y las zonas de memoria a las que puede acceder. Una virtual board puede compartir un núcleo con otra virtual board, tener un núcleo dedicado, o utilizar varios al mismo tiempo.
 \begin{figure*}[h]
 	\centering
 	\includegraphics[width=0.75\textwidth]{recursos/windriver_hyp.png}
@@ -36,22 +36,13 @@ Las virtual boards pueden ser creadas, arrancadas, detenidas y relanzadas indivi
 \subsection{Sistemas operativos guest}
 El hipervisor de WindRiver es capaz de ejecutar sistemas operativos utilizando una mezcla de virtualización asistida por hardware y paravirtualización con el objetivo de proporcionar un rendimiento óptimo. Admite sistemas operativos guest como VxWorks o WindRiver Linux, y proporciona una interfaz para que otros sistemas operativos puedan ejecutarse, incluyendo sistemas operativos de código abierto o licenciados.\\
 
-\paragraph{Sistemas operativos sin modificaciones} El hipervisor de WindRiver permite la ejecución de sistemas operativos sin modificaciones de código del tipo Red Hat Enterprise Linux o Microsoft Windows dentro de una virtual board en microprocesadores Intel con extensiones de virtualización.\\
+\begin {itemize}
+\item Sistemas operativos sin modificaciones: El hipervisor de WindRiver permite la ejecución de sistemas operativos sin modificaciones de código del tipo Red Hat Enterprise Linux o Microsoft Windows dentro de una virtual board en microprocesadores Intel con extensiones de virtualización.\\
 
-\paragraph{Sistemas baremetal}
-El hipervisor permite la ejecución de virtual boards que no tengan sistema operativo denominadas \textit{bare metal executives}. Hay ciertas tareas en los sistemas embebidos que no requieren de las capacidades que ofrece un sistema operativo, ni de la complejidad que añade. WindRiver proporciona una API abierta, con la que presenta a estas virtual boards la forma de acceder a los recursos del sistema, como la \acrshort{MMU}, excepciones e interrupciones, núcleos de CPU y otros dispositivos necesarios para operar. Esta API permite beneficiarse de las capacidades de la virtualización mientras se mantiene la respuesta en tiempo real necesaria por la aplicación.
-
-\paragraph{Paravirtualización y virtualización asistida por hardware}
-Como se ha mencionado anteriormente, muchas familias actuales de microprocesadores proporcionan mecanismos hardware para asistir a la virtualización. El hipervisor de WindRiver se vale de estos mecanismos para proporcionar servicios de virtualización. De la misma manera, existen muchos dispositivos que no proporcionan esta asistencia por hardware, y esos servicios de virtualización los proporciona el software, impactando en el rendimiento del sistema. Para esos casos, se requiere de paravirtualización del sistema operativo.\\
-La paravirtualización es la modificación de las llamadas privilegiadas de un sistema operativo para que colabore con el hipervisor. Es este el que debe ejecutar las llamadas privilegiadas en representación del sistema operativo guest. La cantidad de modificaciones necesaria depende mucho de la arquitectura del microprocesador y típicamente implica lo siguiente:
-
-\begin{itemize}
-  \item Niveles privilegiados: un sistema virtualizado requiere normalmente de tres niveles de privilegio distintos: uno para el hipervisor, otro para el sistema operativo guest y otro para las aplicaciones. Las arquitecturas de microprocesadores que no proporcionan aistencia por hardware suelen tener solo dos niveles de privilegio. La tarea de la paravirtualización es emular el nivel que falta. Las instrucciones privilegiadas tienen que ser sustituidas por llamadas a la API del hipervisor.
-  \item Acceso a dispositivos: un driver en un sistema operativo que se ejecuta nativamente puede acceder a cualquier dispositivo. En un entorno virtualizado, el hipervisor es el que arbitra y decide si una determinada virtual board tiene acceso a un dispositivo o no. Esto incluye interrupciones, dispositivos de entrada salida, registros, y acceso directo a memoria (DMA)
-  \item \acrshort{MMU}: el hipervisor controla la \acrshort{MMU} en un entorno virtualizado. Algunos procesadores con asistencia hardware permiten a un sistema guest modificar la \acrshort{MMU} de la virtual board. Si no se dispone de la asistencia hardware, el guest debe colaborar con el hipervisor para modificar la \acrshort{MMU}.
+\item Sistemas baremetal: El hipervisor permite la ejecución de virtual boards que no tengan sistema operativo denominadas \textit{bare metal executives}. Hay ciertas tareas en los sistemas embebidos que no requieren de las capacidades que ofrece un sistema operativo, ni de la complejidad que añade. WindRiver proporciona una \acrshort{API} abierta, con la que presenta a estas virtual boards la forma de acceder a los recursos del sistema, como la \acrshort{MMU}, excepciones e interrupciones, núcleos de CPU y otros dispositivos necesarios para operar. Esta \acrshort{API} permite beneficiarse de las capacidades de la virtualización mientras se mantiene la respuesta en tiempo real necesaria por la aplicación.
 \end{itemize}
 
-\paragraph{Acceso a dispositivos}
+\subsection{Acceso a dispositivos}
 El hipervisor de WindRiver proporciona un modelado de dispositivo que permite asignar dispositivos a las virtual boards de diferentes maneras. El acceso al dispositivo puede ser directo, compartido, virtualizado o emulado. Cada una de estas formas de acceder tiene sus particularidades y la elección depende en gran medida de la aplicación y del rendimiento necesario.
 
 \begin{itemize}
@@ -65,15 +56,15 @@ El hipervisor de WindRiver proporciona un modelado de dispositivo que permite as
   	\label{fig:windriver_drv_1}
   \end{figure*}
 
-  \item Virtualizado: este tipo de acceso se utiliza cuando más de un sistema guest requiere de acceso a un dispositivo (figura \ref{fig:windriver_drv_2}). De esta forma, el driver propiamente dicho se encuentra dentro del hipervisor y los sistemas guest utilizan un driver ``stub'' para comunicarse con él.
-  \begin{figure*}[!htb]
+  \item Virtualizado: este tipo de acceso se utiliza cuando más de un sistema guest requiere de acceso a un dispositivo (figura \ref{fig:windriver_drv_2}). De esta forma, el driver propiamente dicho se encuentra dentro del hipervisor y los sistemas guest utilizan un driver ``\textit{stub}'' para comunicarse con él.\\[2cm]
+  \begin{figure*}[!h]
   	\centering
   	\includegraphics[width=0.65\textwidth]{recursos/windriver_drv_2.png}
   	\caption{Acceso virtualizado a dispositivo en WindRiver Hypervisor}
   	\label{fig:windriver_drv_2}
   \end{figure*}
 
-  \item Emulado: el caso de uso para este tipo de acceso a dispositivo es en el que los drivers de los sistemas guest no pueden ser sustituidos por un driver ``stub''. El hipervisor proporciona una emulación hardware al driver nativo del sistema guest pero por debajo utiliza su propio driver para accedes físicamente al dispositivo (figura \ref{fig:windriver_drv_3}). Los dispositivos emulados ofrecen la mayor de las flexibilidades para las virtual boards pero el impacto en el rendimiento es significativamente mayor que en el resto de los casos.
+  \item Emulado: el caso de uso para este tipo de acceso a dispositivo es en el que los drivers de los sistemas guest no pueden ser sustituidos por un driver ``\textit{stub}''. El hipervisor proporciona una emulación hardware al driver nativo del sistema guest pero por debajo utiliza su propio driver para accedes físicamente al dispositivo (figura \ref{fig:windriver_drv_3}). Los dispositivos emulados ofrecen la mayor de las flexibilidades para las virtual boards pero el impacto en el rendimiento es significativamente mayor que en el resto de los casos.
   \begin{figure*}[!htb]
   	\centering
   	\includegraphics[width=0.65\textwidth]{recursos/windriver_drv_3.png}
@@ -83,8 +74,8 @@ El hipervisor de WindRiver proporciona un modelado de dispositivo que permite as
 
 \end{itemize}
 
-\paragraph{Comunicaciones entre guests}
-El hipervisor de WindRiver facilita la comunicación rápida entre virtual boards proporcionando mensajería punto a punto, comunicación entre procesos multi sistema operativo (\acrshort{MIPC}), y comunicaciones IP, usando un controlador virtual de red (VNIC). Existen dos formas de transporte de mensajes: memoria compartida para conexiones \acrshort{MIPC} y sistema seguro de transporte tanto para conexiones \acrshort{MIPC} como para conexiones \acrshort{VNIC}. Las conexiones rápidas por IP entre virtual boards se consiguen utilizando el driver \acrshort{VNIC} del sistema guest y creando uno o más switches ethernet virtuales dentro del hipervisor.
+\subsection{Comunicaciones entre guests}
+El hipervisor de WindRiver facilita la comunicación rápida entre virtual boards proporcionando mensajería punto a punto, comunicación entre procesos multi sistema operativo (\acrshort{MIPC}), y comunicaciones IP, usando un controlador virtual de red (\acrshort{VNIC}). Existen dos formas de transporte de mensajes: memoria compartida para conexiones \acrshort{MIPC} y sistema seguro de transporte tanto para conexiones \acrshort{MIPC} como para conexiones \acrshort{VNIC}. Las conexiones rápidas IP entre virtual boards se consiguen utilizando el driver \acrshort{VNIC} del sistema guest y creando uno o más switches ethernet virtuales dentro del hipervisor. Las distintas combinaciones se recogen en la figura \ref{fig:windriver_com}.
 \begin{figure*}[!htb]
   \centering
   \includegraphics[width=0.65\textwidth]{recursos/windriver_com.png}
@@ -93,19 +84,19 @@ El hipervisor de WindRiver facilita la comunicación rápida entre virtual board
 \end{figure*}
 
 \section{KVM}
-KVM, o \textit{Kernel-based Virtual Machine} \cite{kvm_list}, es un hipervisor de tipo 2, lo que implica que necesita un sistema operativo host para funcionar. Aunque su uso en sistemas embebidos no parece a priori muy adecuado,
-se ha introducido en este apartado del documento debido a que es el hipervisor que está en la línea principal de Linux, por lo que tiene detrás una potente fuerza de desarrollo y de usuarios.\\
-KVM permite la ejecución de distintos sistemas operativos sin requerir modificaciones en los mismos y tiene versiones para las arquitecturas x86, x86\_64, MIPS, PowerPC y ARM con distintos grados de oficialidad.
+KVM, o \textit{Kernel-based Virtual Machine} \cite{kvm_1}, es un hipervisor de tipo 2, lo que implica que necesita un sistema operativo host para funcionar. Aunque su uso en sistemas embebidos no parece a priori muy adecuado,
+se ha introducido en este apartado del documento debido a que es el hipervisor que está en la línea principal de Linux, por lo que tiene detrás una gran base de desarrolladores y usuarios.\\
+KVM permite la ejecución de distintos sistemas operativos sin requerir modificaciones en los mismos y tiene versiones para las arquitecturas x86, x86\_64, MIPS, PowerPC y ARM con distintos grados de oficialidad \cite{kvm_list}.
 
 
-\paragraph{Orígenes}
-KVM fue anunciado por su creador, Avi Kivity, en octubre de 2006 \cite{kvm_2}. El desarrollo de KVM empezó dentro de la compañía donde trabajaba Kivity, la israelí Qumranet, con el objetivo de corregir las limitaciones de la versión de Xen existente con la que estaban trabajando. En aquel momento, las extensiones de virtualización estaban anunciadas, pero no existían en las arquitecturas de microprocesadores. El desarrollo de KVM se basó en sacar partido a esa tecnología que estaba por llegar y que Xen todavía no incluía. En la arquitectura x86, tradicionalmente el nivel más alto de privilegio era el \textit{ring 0} y para poder ejecutar varios sistemas operativos concurrentemente hacía falta un nivel de privilegio superior a este. Con la irrupción de la tecnología de virtualización de Intel VT-x apareció un conjunto de instrucciones VMX (Virtual Machine Extensions) que introdujo un nivel de privilegio nuevo, \textit{ring -1}, en el que el hipervisor se ejecuta. La primera versión de KVM incluía la utilización de las instrucciones VMX de Intel y pronto incorporó las instrucciones SVM de AMD. En Diciembre de 2006, KVM se integró en la línea principal del kernel de Linux, y la primera versión en la que apareció fue en la 2.6.20 de Febrero de 2007.
+\subsection{Orígenes}
+KVM fue anunciado por su creador, Avi Kivity, en octubre de 2006 \cite{kvm_2}. El desarrollo de KVM empezó dentro de la compañía donde trabajaba Kivity, Qumranet, con el objetivo de corregir las limitaciones de la versión de Xen existente con la que estaban trabajando. En aquel momento, las extensiones de virtualización estaban anunciadas, pero no existían en las arquitecturas de microprocesadores. El desarrollo de KVM se basó en sacar partido a esa tecnología que estaba por llegar y que Xen todavía no incluía. En la arquitectura x86, tradicionalmente el nivel más alto de privilegio era el \textit{ring 0} y para poder ejecutar varios sistemas operativos concurrentemente hacía falta un nivel de privilegio superior a este. Con la irrupción de la tecnología de virtualización de Intel VT-x \cite{intel_vt} apareció un conjunto de instrucciones \acrshort{VMX} (Virtual Machine Extensions) que introdujo un nivel de privilegio nuevo, \textit{ring -1}, en el que el hipervisor se ejecuta. La primera versión de KVM incluía la utilización de las instrucciones \acrshort{VMX} de Intel y pronto incorporó las instrucciones \acrshort{SVM} (Secure Virtual Machine) de AMD. En Diciembre de 2006, KVM se integró en la línea principal del kernel de Linux, y la primera versión en la que apareció fue en la 2.6.20 de Febrero de 2007.
 
-\paragraph{Implementación en ARM}
+\subsection{Implementación en ARM}
 Adelantando la arquitectura de microprocesador que se va a utilizar para el desarrollo del presente trabajo, se va a tener en cuenta únicamente la implementación de KVM en la arquitectura ARM, ya que tiene varias particularidades.\\
 El trabajo de adaptar KVM para plataformas basadas en ARM no es sencillo ya que fue concebido para Intel VT-x y difiere en aspectos importantes de la asistencia a la virtualización que ofrece la arquitectura ARM, más concretamente en ARMv8 \cite{kvm_1}.\\
-Más adelante se detallarán las características de la asistencia a la virtualización (extensiones de virtualización según ARM \cite{armv8_virt}), pero resumiendo, la clave para dar cabida a la virtualización en la arquitectura ARM es la inclusión de un nuevo nivel de privilegio en la CPU, o nivel de excepción (EL) en la nomenclatura ARM. Este nuevo nivel de excepción, EL2, se añade a los ya existentes de usuario y de kernel, EL0 y EL1 respectivamente.
-El software que se ejecuta en EL2 puede configurar el hardware para asistir a las máquina virtuales. El hipervisor es el software que se ejecuta en EL2 y que habilita las funciones de virtualización del hardware para permitir a los sistemas guest interactuar mediante una interfaz igual a lo que sería una máquina real. De esta forma, no hace falta modificar los sistemas guest para poder ejecutarse. Los sistemas guest pueden ser ejecutados como si fueran nativos, utilizando EL1 y EL0 hasta que alguna condición hace que se requiera del hipervisor. En este punto, el hardware pasa a EL2, dando control al hipervisor, que puede interactuar directamente con el harware, y finalmente devolver el control al sistema guest.\\
+La asistencia a la virtualización (extensiones de virtualización según ARM \cite{armv8_virt}), se basa en la inclusión de un nuevo nivel de privilegio en la CPU, o nivel de excepción (EL) en la nomenclatura ARM. Este nuevo nivel de excepción, EL2, se añade a los ya existentes de usuario y de kernel, EL0 y EL1 respectivamente.
+El software que se ejecuta en EL2 puede configurar el hardware para asistir a las máquina virtuales. El hipervisor es el software que se ejecuta en EL2 y que habilita las funciones de virtualización del hardware para permitir a los sistemas guest interactuar mediante una interfaz igual a lo que sería una máquina real. De esta forma, no hace falta modificar los sistemas guest para poder ejecutarse. Los sistemas guest pueden ser ejecutados como si fueran nativos, utilizando EL1 y EL0 hasta que alguna condición requiera de la intervención del hipervisor. En este punto, el hardware pasa automáticamente a EL2, dando control al hipervisor, que puede interactuar directamente con el harware, y finalmente devolver el control al sistema guest.\\
 Los hipervisores de tipo 1 encajan bien con este reparto de los niveles de excepción descritos, mientras que los de tipo 2, como KVM, lo tienen más complicado, como se puede apreciar en la figura \ref{fig:kvm_and_xen}:
 
 \begin{figure*}[!htb]
@@ -116,7 +107,7 @@ Los hipervisores de tipo 1 encajan bien con este reparto de los niveles de excep
 \end{figure*}
 
 Los sistemas operativos existentes están diseñados para ejecutarse en EL1, así que un hipervisor de tipo 2, que necesita de un sistema operativo host (KVM y Linux en este caso) para ejecutarse y acceder al hardware
-no encaja tan bien en la arquitectura ARMv8. El EL2 es estrictamente un nivel de excepción mayor que EL1 con registros diferentes. Cambiar Linux para que se ejecute en EL2 requiere de demasiadas modificaciones que no serían prácticas, por tanto, KVM se ejecuta tanto en EL1 como en EL2 en un modo denominado virtualización partida, o \textit{split-mode virtualization}. De este modo, por un lado se comparte el EL1 entre el sistema operativo host (Linux) y las máquinas virtuales, y, por otro, se utiliza EL2 para habilitar las extensiones de virtualización que permitan ejecutar las máquinas virtuales con un rendimiento cercano al de un sistema nativo. KVM habilita estas extensiones en EL2 cuando se cambia de modo host a modo máquina virtual, y las deshabilita cuando vuelve a cambiar a host. De esta forma se podría decir que una máquina virtual ejecutándose con KVM, no es más que otro proceso más para el sistema operativo host, lo que requiere un cambio de contexto cuando se entra y se sale de la máquina virtual.\\
+no encaja tan bien en la arquitectura ARMv8. EL2 es estrictamente un nivel de excepción mayor que EL1 con registros diferentes. Cambiar Linux para que se ejecute en EL2 requiere de demasiadas modificaciones que no serían prácticas, por tanto, KVM se ejecuta tanto en EL1 como en EL2 en un modo denominado virtualización partida, o \textit{split-mode virtualization}. De este modo, por un lado se comparte el EL1 entre el sistema operativo host (Linux) y las máquinas virtuales, y, por otro, se utiliza EL2 para habilitar las extensiones de virtualización que permitan ejecutar las máquinas virtuales con un rendimiento cercano al de un sistema nativo. KVM habilita estas extensiones en EL2 cuando se cambia de modo host a modo máquina virtual, y las deshabilita cuando vuelve a cambiar a host. De esta forma se podría decir que una máquina virtual ejecutándose con KVM, no es más que otro proceso más para el sistema operativo host, lo que requiere un cambio de contexto cuando se entra y se sale de la máquina virtual.\\
 
 
 \section{Xen}
