@@ -7,10 +7,10 @@ A la hora de seleccionar la plataforma para desarrollar las pruebas sobre los hi
   \item Herramientas para generar máquinas virtuales: al objeto de evaluar un sistema virtualizado con ambos hipervisores, se va a necesitar generar tanto un dominio o celda Linux con su kernel, \textit{device-tree} y sistema de ficheros y un sistema baremetal. La selección de la tarjeta electrónica, o más bien la arquitectura del microprocesador que incluya, marca también en gran medida las herramientas (compilador, BSP, etc.) para generar el software necesario. Cabe destacar que se le ha dado importancia a poder disponer de todo el código fuente que se vaya a utilizar, a fin de poder controlarlo, entenderlo y adaptarlo si fuera necesario.
 \end{itemize}
 
-Una de las arquitecturas más populares en los últimos tiempos en los sistemas embebidos es la ARM. Es ubicua y en los ultimos años ha irrumpido con mucha fuerza. La famosa tarjeta de la frambuesa desde su inicio ha incluido un procesador ARM, lo que le ha dado más popularidad, si cabe, y también Xilinx, desde la familia Zynq\textregistered-7000, en su PS.\\
+Una de las arquitecturas más populares en los últimos tiempos en los sistemas embebidos es la ARM. Es ubicua y en los últimos años ha irrumpido con mucha fuerza. La famosa tarjeta de la frambuesa desde su inicio ha incluido un procesador ARM, lo que le ha dado más popularidad, si cabe, y también Xilinx, desde la familia Zynq\textregistered-7000, en su PS.\\
 Debido a la familiaridad con las plataformas de Xilinx y sus herramientas y al creciente interés en la virtualización sobre la arquitectura ARMv8, se decidió optar por una tarjeta que incluyera un chip de la familia Zynq\textregistered UltraScale+\texttrademark. Por otra parte, resulta de especial interés que, además de incluir un procesador ARMv8 en la zona de PS, incluya una parte de PL o FPGA en la que se pueden desplegar diferentes periféricos con objeto de establecer un entono de pruebas y medidas flexible.
 
-La tarjeta Xilinx ZCU102 aparece en la lista de plataformas compatibles de Xen y Jailhouse. Sin embargo, en el momento de iniciar el presente trabajo no se disponía de dicha tarjeta. En cambio, la platarforma que sí estaba disponible era la UltraZed\texttrademark. Debido a que incluye un chip de la familia Zynq\textregistered UltraScale+\texttrademark MPSoC al igual que la ZCU102, se estimó que las modificaciones necesarias para poder ejecutar ambos hipervisores no serían demasiado costosas, por lo que el desarrollo se ha efectuado sobre esa plataforma.
+La tarjeta Xilinx ZCU102 aparece en la lista de plataformas compatibles de Xen y Jailhouse. Sin embargo, en el momento de iniciar el presente trabajo no se disponía de dicha tarjeta. En cambio, la plataforma que sí estaba disponible era la UltraZed\texttrademark. Debido a que incluye un chip de la familia Zynq\textregistered UltraScale+\texttrademark MPSoC al igual que la ZCU102, se estimó que las modificaciones necesarias para poder ejecutar ambos hipervisores no serían demasiado costosas, por lo que el desarrollo se ha efectuado sobre esa plataforma.
 
 \section{Plataforma electrónica}
 \subsection{Ultrazed\texttrademark}
@@ -55,7 +55,7 @@ La tarjeta electrónica utilizada se compone de dos partes: UltraZed-EG\texttrad
 
 \subsection{Configuración de SoC} \label{vivado_config}
 
-En la plataforma electrónica que se ha especificado, el componente principal y sobre el que se van a ejecutar los programas y pruebas que se desarrollen es el UltraScale+\texttrademark MPSoC. Este componente dispone de una parte de \acrshort{PS} en la que se encueltran los 4 núcleos ARM Cortex-A53 en los que se van a ejecutar las celdas o dominios en los que se va a dividir el sistema virtualizado. Respecto a la zona de \acrshort{PL}, se va a utilizar como mero instrumento de medida y entrada/salida. En la figura \ref{fig:vivado_1} aparece el diseño de bloques que se ha implementado:
+En la plataforma electrónica que se ha especificado, el componente principal y sobre el que se van a ejecutar los programas y pruebas que se desarrollen es el UltraScale+\texttrademark MPSoC. Este componente dispone de una parte de \acrshort{PS} en la que se encuentran los 4 núcleos ARM Cortex-A53 en los que se van a ejecutar las celdas o dominios en los que se va a dividir el sistema virtualizado. Respecto a la zona de \acrshort{PL}, se va a utilizar como mero instrumento de medida y entrada/salida. En la figura \ref{fig:vivado_1} aparece el diseño de bloques que se ha implementado:
 
 \begin{figure*}[h!]
 	\centering
@@ -95,12 +95,12 @@ En la configuración de la zona de PS se han utilizado las definiciones de tarje
 A continuación se listan las herramientas software que se han empleado en la elaboración de los tests en los hipervisores Xen y Jailhouse. Para la plataforma electrónica seleccionada ha sido suficiente la licencia gratuita (WebPACK) que proporciona Xilinx.
 
 \begin{itemize}
-  \item Vivado Design Suite 2018.3: este paquete de software de Xilinx es el que permite generar lo que se denomina la \textit{Hardware Platform} y exportala a fin de poder crear proyectos de software sobre ella como se verá más adelante. Esta \textit{Hardware Platform} contiene tanto la parte de configuración de la parte de PS del Zynq\textregistered UltraScale+\texttrademark MPSoC como el bitstream que se programa en la zona PL.\\
+  \item Vivado Design Suite 2018.3: este paquete de software de Xilinx es el que permite generar lo que se denomina la \textit{Hardware Platform} y exportarla a fin de poder crear proyectos de software sobre ella como se verá más adelante. Esta \textit{Hardware Platform} contiene tanto la parte de configuración de la parte de PS del Zynq\textregistered UltraScale+\texttrademark MPSoC como el bitstream que se programa en la zona PL.\\
   \url{https://www.xilinx.com/products/design-tools/vivado.html}
   \item Xilinx Software Development Kit (XSDK) 2018.3: la herramienta \acrshort{XSDK} es un entorno integrado de desarrollo basado en eclipse que permite desarrollar aplicaciones para ejecutarse sobre la plataforma generada por Vivado. Mediante un sencillo interfaz gráfico se pueden crear aplicaciones tanto baremetal, como FreeRTOS y Linux. Soporta todas las familias de microprocesadores existentes en las plataformas de Xilinx: MicroBlaze, ARM Cortex-R5, ARM Cortex-A9 y ARM Cortex-A53. Cabe destacar que también incorpora un sistema de depurado de software y herramientas de análisis de rendimiento.\\
   \url{https://www.xilinx.com/products/design-tools/embedded-software/sdk.html}
   \item Petalinux Tools 2018.3: en este paquete se proporcionan todas las herramientas y componentes software para construir un sistema embebido basado en Linux en las plataformas de Xilinx.\\
-  Desde las últimas versiones su sistema de compilación y generación de software está basado en el proyecto yocto (\url{https://www.yoctoproject.org/}). Xilinx añade una capa software sobre yocto para manejar las particularizaciones de sus productos.\\
+  Desde las últimas versiones su sistema de compilación y generación de software está basado en el proyecto yocto (\url{https://www.yoctoproject.org/}). Xilinx añade una capa software sobre yocto para manejar las particularidades de sus productos.\\
   \url{https://www.xilinx.com/products/design-tools/embedded-software/petalinux-sdk.html}
 \end{itemize}
 
