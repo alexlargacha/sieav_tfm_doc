@@ -34,16 +34,16 @@ La tarjeta electrónica utilizada se compone de dos partes: UltraZed-EG\texttrad
     	\label{fig:mpsoc_arch}
     \end{figure*}
 
-  \item 2 GB \acrshort{DDR}4 \acrshort{SDRAM}
-  \item 64 MB memoria flash \acrshort{QSPI}
-  \item 8 GB memoria flash \acrshort{eMMC}
-  \item 1 Gigabit Ethernet
-  \item 1 conector para tarjetas microSD
-  \item 12 conectores \acrshort{PMOD} conectados a la parte de \acrshort{PL}
-  \item 1 \acrshort{DIP} switch de 8 posiciones conectado a \acrshort{PL}
-  \item 8 LEDs conectados a \acrshort{PL}
-  \item 1 conector \acrshort{JTAG}
-  \item 2 \acrshort{USB}-\acrshort{UART}
+  \item 2 GB \acrshort{DDR}4 \acrshort{SDRAM}.
+  \item 64 MB memoria flash \acrshort{QSPI}.
+  \item 8 GB memoria flash \acrshort{eMMC}.
+  \item 1 Gigabit Ethernet.
+  \item 1 conector para tarjetas microSD.
+  \item 12 conectores \acrshort{PMOD} conectados a la parte de \acrshort{PL}.
+  \item 1 \acrshort{DIP} switch de 8 posiciones conectado a \acrshort{PL}.
+  \item 8 LEDs conectados a \acrshort{PL}.
+  \item 1 conector \acrshort{JTAG}.
+  \item 2 \acrshort{USB}-\acrshort{UART}.
 \end{itemize}
 
 \begin{figure*}[h]
@@ -66,7 +66,7 @@ En la plataforma electrónica que se ha especificado, el componente principal y 
 
 Como se puede observar, se trata de un sistema muy sencillo en el que todos los bloques se conectan por bus AXI y por tanto aparecen mapeados en memoria del microprocesador. El objetivo es medir la latencia que introducen los hipervisores en el tratamiento de interrupciones en sistemas guest baremetal y con ese fin se han dispuesto los siguientes bloques y conexiones entre ellos.\\
 
-Se ha tomado como generador de interrupciones el cambio en el valor del la entradas del bloque \acrshort{AXI} \acrshort{GPIO} con nombre \textit{axi\_gpio\_0}.
+Se ha tomado como generador de interrupciones el cambio en el valor del la entradas del bloque \acrshort{AXI} \acrshort{GPIO} con nombre \textit{axi\_gpio\_0} \cite{axi_gpio}.
 En este bloque se ha habilitado la salida de la interrupción y se ha conectado al grupo de interrupciones de \acrshort{PL} a \acrshort{PS} número 1 (línea verde en la figura \ref{fig:vivado_1}). Este grupo de interrupciones tiene unos números de interrupción que luego tendrán que ser gestionados desde el programa. Estos números los determina la propia arquitectura de Xilinx y ARM. En el presente caso la interrupción es la número 136 \cite{axi_trm}. Más adelante se verá como se utiliza este número en el software.\\
 La entrada del bloque \textit{axi\_gpio\_0} está conectada a la salida de un temporizador con nombre \textit{axi\_timer\_1} que se va a configurar en modo \acrshort{PWM} a fin de generar interrupciones periódicas (línea morada en la figura \ref{fig:vivado_1}).
 

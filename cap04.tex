@@ -461,7 +461,7 @@ $ petalinux-buid
 
 Al finalizar el proceso, entre los binarios generados se encuentra el firmware de Xen que va a ser utilizado durante el arranque del sistema como se verá posteriormente. El nombre del fichero es \textit{xen.ub}
 
-Alternativamente a la generación mediante PetaLinux, existe siempre la posibilidad de descargar el código fuente y compilarlo. Para ello, se deben ejecutar los siguientes comandos \cite{xen_source_xilinx}
+Alternativamente a la generación mediante PetaLinux, existe siempre la posibilidad de descargar el código fuente \cite{xen_source_xilinx} y compilarlo. Para ello, se deben ejecutar los siguientes comandos:
 
 \begin{lstlisting}[style=CStyle]
 $ git clone git@github.com:Xilinx/xen.git
@@ -515,7 +515,7 @@ El contenido del fichero \textit{xen.dtsi} es lo que utiliza Xen y el Dom0 para 
 En el parámetro \textit{xen,xen-bootargs} se especifica el dispositivo físico para la consola, el tamaño de la memoria (768MB) que se concede al Dom0, así como el máximo de CPUs. En el siguiente parámetro, destinado al Dom0, se define la consola como \textit{hvc0}. Esto implica que la consola del Dom0 pasa a través de Xen siendo la misma para los dos. En la sección \ref{section:text_xen} se muestran los mensajes producidos en el inicio del sistema tanto por Xen como por el Dom0.\\
 Se indica también el tipo de Dom0 que va a arrancar Xen. En este caso se trata de un kernel de Linux en formato zimage que se debe cargar en la dirección 0x80000 de memoria en el cargador de arranque U-Boot como se verá también en las siguientes secciones.
 
-El siguiente bloque del fichero contiene la definición de los dispositivos que pueden ser maestros de la MMU. En Xen para ARMv8 se hace uso de la extensión de virtualización que permite los mapeos de memoria virtual a física en dos fases como se explica en \cite{armv8_stage2}. De esta forma, se le indica a Xen la lista de los dispositivos que son capaces de mover datos directamente a memoria \acrshort{RAM} para permitir ese flujo a la hora de configurar la \acrshort{SMMU}.
+El siguiente bloque del fichero contiene la definición de los dispositivos que pueden ser maestros de la MMU. En Xen para ARMv8 se hace uso de la extensión de virtualización que permite los mapeos de memoria virtual a física en dos fases como se explica en \cite{armv8_virt_mmu}. De esta forma, se le indica a Xen la lista de los dispositivos que son capaces de mover datos directamente a memoria \acrshort{RAM} para permitir ese flujo a la hora de configurar la \acrshort{SMMU}.
 
 \begin{lstlisting}[style=CStyle]
 (...)
