@@ -122,11 +122,13 @@ En el caso de Xen, los resultados obtenidos de la prueba definida en la sección
   \begin{adjustbox}{width=\linewidth}
     \begin{tikzpicture}
       \begin{axis}[
+        every axis plot post/.style={/pgf/number format/fixed},
         ybar,
         symbolic x coords={Mínimo,Media,Máximo},
         xtick=data,
-        axis y line=none,
         axis x line=bottom,
+        enlarge x limits=0.2,
+        hide y axis,
         nodes near coords,
         ]
         \addplot table[x=interval,y=carT]{\mydatabig};
@@ -138,14 +140,14 @@ En el caso de Xen, los resultados obtenidos de la prueba definida en la sección
   \end{adjustbox}
 \end{minipage}
 
-\begin{minipage}[b]{.4\linewidth}
+\begin{minipage}[b]{.5\linewidth}
   \begin{adjustbox}{width=\linewidth}
     \begin{tikzpicture}
       \begin{axis}[
         ybar,
         symbolic x coords={Desviación},
         xtick=data,
-        axis y line=none,
+        hide y axis,
         axis x line=bottom,
         ytick=\empty,
         nodes near coords,
