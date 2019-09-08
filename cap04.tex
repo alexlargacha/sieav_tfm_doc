@@ -330,7 +330,7 @@ void inmate_main(void)
 
 \end{lstlisting}
 
-\subsection{Test Linux + baremetal}
+\subsection{Test Linux + celda baremetal} \label{test:jailhouse}
 
 La tarjeta electrónica se va a arrancar con los artefactos generados en el proyecto de PetaLinux y descritos en el anexo \ref{petalinux}. En el caso de Jailhouse se requiere de una modificación extra en el \textit{device-tree} para deshabilitar en la celda Linux los dispositivos cuyo manejo corresponde a la celda con la aplicación baremetal. Como se ha descrito en la sección \ref{jailhouse_sota}, el hipervisor Jailhouse no permite que un periférico se utilice en más de una celda. Por defecto en el fichero \textit{pl.dtsi} que genera automáticamente PetaLinux basándose en el diseño implementado en \acrshort{PL} se crean los nodos de esos dispositivos para ser manejados desde Linux. En este caso no interesa que Linux maneje esos recursos por lo que se deshabilitan en el fichero \textit{system-user.dtsi} de la siguiente forma:
 \begin{lstlisting}[style=CStyle]
@@ -371,7 +371,7 @@ Activating hypervisor
 [  496.674646] The Jailhouse is opening.
 \end{lstlisting}
 
-El commando \textit{jailhouse enbale} lo que hace es configurar la \textit{root cell} con la definición del fichero \textit{ultrazed\_ehu.cell}. En este momento lo que ocurre es que se carga el \textit{firmware} de Jailhouse en la dirección especificada para el hipervisor y a continuación crea una celda para alojar el sistema Linux que hasta ahora estaba ejecutándose de manera nativa. Esta \textit{root cell} a partir de este momento ya se ejecuta como un sistema guest. A partir de este momento la gestión de las celdas se realiza con la aplicación que se ejecuta en espacio de usuario de la \textit{root cell}. Esta herramienta se comunica con el hipervisor a través de commandos \textit{ioctl()} hacia el dispositivo \textit{/dev/jailhouse} que se ha creado al insertar el módulo \textit{jailhouse.ko}.
+El commando \textit{jailhouse enable} lo que hace es configurar la \textit{root cell} con la definición del fichero \textit{ultrazed\_ehu.cell}. En este momento lo que ocurre es que se carga el \textit{firmware} de Jailhouse en la dirección especificada para el hipervisor y a continuación crea una celda para alojar el sistema Linux que hasta ahora estaba ejecutándose de manera nativa. Esta \textit{root cell} a partir de este momento ya se ejecuta como un sistema guest. A partir de este momento la gestión de las celdas se realiza con la aplicación que se ejecuta en espacio de usuario de la \textit{root cell}. Esta herramienta se comunica con el hipervisor a través de commandos \textit{ioctl()} hacia el dispositivo \textit{/dev/jailhouse} que se ha creado al insertar el módulo \textit{jailhouse.ko}.
 Como se puede observar en un principio los 4 núcleos están destinados a la \textit{root cell} y se configuran las zonas de memoria y las interrupciones.\\
 
 En el siguiente comando se crea la celda para alojar la aplicación baremetal:

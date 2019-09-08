@@ -26,6 +26,13 @@ El código fuente de esta aplicación es exactamente el mismo que el del DomU de
   \label{fig:resultados:baremetal_1}
 \end{figure*}
 
+Las señales que aparecen en las figuras \ref{fig:resultados:baremetal_1}, \ref{fig:resultados:baremetal_2}, \ref{fig:resultados:jailhouse} y \ref{fig:resultados:xen} son las siguientes:
+\begin{itemize}
+  \item Salida del temporizador en modo \acrshort{PWM}.
+  \item Señal de interrupción generada por el bloque \acrshort{GPIO} \textit{axi\_gpio\_0} de la figura \ref{fig:vivado_1}.
+  \item Activación de la señal del bloque \acrshort{GPIO} \textit{axi\_gpio\_3} de la figura \ref{fig:vivado_1} producida en la \acrshort{ISR}.
+\end{itemize}
+
 Al ejecutar la aplicación de refenrencia, como se puede observar en la figura \ref{fig:resultados:baremetal_2}, la latencia ronda los 360 ns.\\
 
 \begin{figure*}[!h]
@@ -51,6 +58,8 @@ Los valores obtenidos en una muestra de 256 interrupciones aparecen en la tabla 
 
 \section{Aplicación baremetal en celda Jailhouse}
 
+Los resultados para Jailhouse del test descrito en la sección \ref{test:jailhouse} se muestran en la figura \ref{fig:resultados:jailhouse} y en la tabla \ref{table:results_jailhouse}.\\
+
 \begin{figure*}[!h]
   \centering
   \includegraphics[width=1.0\textwidth]{recursos/jailhouse_1_saleae.png}
@@ -73,6 +82,8 @@ Los valores obtenidos en una muestra de 256 interrupciones aparecen en la tabla 
 
 \section{Aplicación baremetal en DomU de Xen}
 
+En el caso de Xen, los resultados obtenidos de la prueba definida en la sección \ref{section:text_xen} aparecen reflejados en la tabla \ref{table:results_xen} y la figura \ref{fig:resultados:xen}.\\
+
 \begin{figure*}[!h]
   \centering
   \includegraphics[width=1.0\textwidth]{recursos/xen_1_saleae.png}
@@ -86,13 +97,14 @@ Los valores obtenidos en una muestra de 256 interrupciones aparecen en la tabla 
 		\hline
     Mínimo          & Media      & Máximo  & Desvicación típica  \\
     \hline
-    2130 ns         &  2182.65     & 2320 ns    & 30.32 ns	   \\
+    2130 ns         &  2182.65 ns     & 2320 ns    & 30.32 ns	   \\
     \hline
 	\end{tabular}
 	\caption{Tiempos medidos para Xen}
   \label{table:results_xen}
 \end{table}
 
+\section{Resumen de resultados}
 
     \begin{tikzpicture}
     \begin{axis}[
