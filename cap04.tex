@@ -456,7 +456,7 @@ Petalinux Package Groups  ---> packagegroup-petalinux-xen   --->  [*] packagegro
 
 Una vez se ha habilitado esta opción, guardar la configuración y salir. Es necesario reconstruir el proyecto con el comando:
 \begin{lstlisting}[style=CStyle]
-$ petalinux-buid
+$ petalinux-build
 \end{lstlisting}
 
 Al finalizar el proceso, entre los binarios generados se encuentra el firmware de Xen que va a ser utilizado durante el arranque del sistema como se verá posteriormente. El nombre del fichero es \textit{xen.ub}
@@ -555,7 +555,7 @@ Por último, aparecen los dispositivos existentes en el \textit{device-tree} que
 A fin de que la inclusión del fichero \textit{xen.dtsi} tenga efecto, se construye el \textit{device-tree} de nuevo.
 
 \begin{lstlisting}[style=CStyle]
-$ petalinux-buid -c device-tree
+$ petalinux-build -c device-tree
 \end{lstlisting}
 
 El proceso de generación del \textit{device-tree} produce un fichero con extensión \textit{.dtb} que va a ser utilizado tanto por Xen como por el Dom0 durante el arranque.
