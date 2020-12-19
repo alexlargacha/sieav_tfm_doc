@@ -14,7 +14,7 @@ desde una terminal y comenzar a modificar los archivos o directamente con el bot
 Para instalar LaTeX en Ubuntu 18.04 instalar los siguientes paquetes:
 
 ```bash
-$ apt-get install texlive-latex-base
+$ sudo apt-get install texlive-latex-base
 $ sudo apt-get install texlive-lang-spanish
 $ sudo apt-get install texlive-latex-extra
 ```
