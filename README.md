@@ -6,9 +6,24 @@
 [![made-with-latex](https://img.shields.io/badge/Made%20with-LaTeX-1f425f.svg)](https://www.latex-project.org/) [![GitHub release](https://img.shields.io/github/release/jonatanlv/templateTFM.svg)](https://GitHub.com/jonatanlv/templateTFM/releases/) [![GitHub watchers](https://img.shields.io/github/watchers/jonatanlv/templateTFM.svg?label=Watch&style=social)](https://GitHub.com/jonatanlv/templateTFM)
 
 ```bash
-git clone git@github.com:alexlargacha/sieav_tfm_doc.git
+$ git clone git@github.com:alexlargacha/sieav_tfm_doc.git
 ```
 desde una terminal y comenzar a modificar los archivos o directamente con el botón de `Clonar o descargar` en la página del proyecto.
+
+## LaTeX en Linux
+Para instalar LaTeX en Ubuntu 18.04 instalar los siguientes paquetes:
+
+```bash
+$ apt-get install texlive-latex-base
+$ sudo apt-get install texlive-lang-spanish
+$ sudo apt-get install texlive-latex-extra
+```
+
+## Compilación del documento
+
+```bash
+$ pdflatex TFM_SIEAV.tex
+```
 
 ## Compilación separada del documento
 
