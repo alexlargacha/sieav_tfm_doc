@@ -10,6 +10,15 @@ $ git clone git@github.com:alexlargacha/sieav_tfm_doc.git
 ```
 desde una terminal y comenzar a modificar los archivos o directamente con el botón de `Clonar o descargar` en la página del proyecto.
 
+## LaTeX en MacOSX
+
+Para instalar LaTex en MacOS Big Sur (2021) es suficiente con istalar la distribución MacTex:
+tug.org/mactex/mactex-download.html
+
+### Plugins para atom:
+https://atom.io/packages/latex
+https://atom.io/packages/language-latex
+
 ## LaTeX en Linux
 Para instalar LaTeX en Ubuntu 18.04 instalar los siguientes paquetes:
 
